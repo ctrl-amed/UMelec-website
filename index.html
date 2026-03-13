@@ -7,11 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
     .custom-gradient { background: linear-gradient(135deg, #0098E0 0%, #00537A 100%); }
-    
-    .btn-active { 
-        background: linear-gradient(to bottom, #0098E0 0%, #00537A 100%) !important; 
-    }
-    
+    .btn-active { background: linear-gradient(to bottom, #0098E0 0%, #00537A 100%) !important; }
     .input-border { border: 2px solid #E5E7EB; }
     .input-error { border: 2px solid #D33131 !important; }
 </style>
@@ -70,9 +66,11 @@
                             <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                             </span>
+                            
                             <input type="password" id="password" placeholder="Password" 
                                 class="input-border w-full pl-12 pr-12 py-4 rounded-2xl focus:outline-none text-lg bg-white transition-all">
-                            <span id="togglePassword" class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 cursor-pointer">
+                            
+                            <span id="togglePassword" class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 cursor-pointer z-10">
                                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                             </span>
                         </div>

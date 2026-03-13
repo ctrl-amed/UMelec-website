@@ -14,6 +14,19 @@ const passwordErrorText = document.querySelector('#passwordError');
 const errorToast = document.querySelector('#errorToast');
 const successToast = document.querySelector('#successToast');
 const dimOverlay = document.querySelector('#dimOverlay');
+const togglePassword = document.querySelector('#togglePassword'); // Added for the Eye Icon
+
+// --- PASSWORD VISIBILITY TOGGLE ---
+
+// This handles the "On and Off" functionality for the eye icon
+togglePassword.addEventListener('click', function () {
+    // Toggle the type attribute
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', type);
+    
+    // Optional: Toggle icon color to show it's active
+    this.classList.toggle('text-[#0098E0]');
+});
 
 // --- BUTTON & UI LOGIC ---
 
@@ -67,14 +80,7 @@ loginForm.addEventListener('submit', function (e) {
 
     /**
      * 2. BACKEND INTEGRATION POINT
-     * TODO: Replace this block with Firebase Auth:
-     * * signInWithEmailAndPassword(auth, email, pass)
-     * .then((userCredential) => {
-     * // Logic for Success (check user role in Firestore)
-     * })
-     * .catch((error) => {
-     * // Logic for Error (show errorToast)
-     * });
+     * TODO: Replace this block with Firebase Auth
      */
 
     // --- TEMPORARY FAKE CREDENTIALS FOR TESTING ---
