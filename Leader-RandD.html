@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports and Documents - COSEL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .bg-sidebar-gradient { background: linear-gradient(to bottom, #0098E0, #00537A); }
+        .bg-nav-active, .hover-nav:hover { background: linear-gradient(to bottom, #F5A304, #8F5F02) !important; color: white !important; }
+        .bg-btn-gradient { background: linear-gradient(to bottom, #0098E0, #00537A); }
+        .modal-overlay { background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(3px); }
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        .card-blue { background: linear-gradient(to bottom, #0098E0, #00537A); }
+        .card-orange { background: linear-gradient(to bottom, #F5A304, #8F5F02); }
+        .card-green { background: linear-gradient(to bottom, #22c55e, #15803d); }
+
+        /* Spinner Styles */
+        .spinner {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0,0,0,0.1);
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading .spinner { display: inline-block; }
+        .loading .btn-content { display: none; }
+    </style>
+</head>
+<body class="bg-white font-sans overflow-x-hidden">
+
+    <div class="flex flex-col lg:flex-row min-h-screen p-0 lg:p-4 gap-0 lg:gap-6">
+        <aside class="w-full lg:w-72 bg-sidebar-gradient lg:rounded-3xl flex flex-col p-6 text-white shadow-xl z-10">
+            <div class="flex items-center gap-3 mb-6 lg:mb-10">
+                <img src="images/COSELLOGO.png" alt="Logo" class="w-10 h-10 lg:w-12 lg:h-12 rounded-full border border-white/30">
+                <h1 class="text-xs lg:text-sm font-bold leading-tight uppercase tracking-wide text-white">Commission on <br> Student Election</h1>
+            </div>
+            
+            <nav class="flex flex-row lg:flex-col flex-1 gap-2 lg:gap-4 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0">
+                <a href="Leader-VoterManagement.html" class="flex-none lg:w-full flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80 hover:text-white whitespace-nowrap">
+                    <i class="fas fa-users text-sm"></i>
+                    <span class="font-medium text-sm lg:text-base">Voter Management</span>
+                </a>
+                <a href="Leader-ResultManagement.html" class="flex-none lg:w-full flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80 hover:text-white whitespace-nowrap">
+                    <i class="fas fa-poll text-sm"></i> 
+                    <span class="font-medium text-sm lg:text-base">Result Management</span>
+                </a>    
+                <button class="flex-none lg:w-full flex items-center gap-3 p-3 rounded-lg bg-nav-active shadow-md transition whitespace-nowrap text-white">
+                    <i class="fas fa-file-alt text-sm"></i>
+                    <span class="font-medium text-sm lg:text-base">Reports and Documents</span>
+                </button>
+            </nav>
+
+            <button id="logoutBtn" class="mt-4 lg:mt-0 w-full py-2 lg:py-3 rounded-xl bg-btn-gradient border border-white/20 shadow-lg font-semibold hover:brightness-110 transition text-sm text-white">
+                Logout
+            </button>
+        </aside>
+
+        <main class="flex-1 bg-white p-4 lg:p-8 flex flex-col min-w-0">
+            <h2 class="text-xl lg:text-2xl font-bold text-gray-800 mb-2">Reports and Documents</h2>
+            
+            <div class="flex items-center justify-between mb-8">
+                <p class="text-gray-500 font-medium">Downloadable Reports</p>
+                <a href="Leader-Archive.html" class="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition group">
+                    <i class="fas fa-eye text-sm transition-transform group-hover:scale-110"></i>
+                    <span class="text-sm font-bold underline decoration-1 underline-offset-4">View Archive</span>
+                </a>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                <div class="card-blue p-6 rounded-2xl text-white shadow-lg flex flex-col justify-between h-44">
+                    <div>
+                        <h3 class="text-lg font-bold leading-tight">Voter Turnout<br>Analytics</h3>
+                        <button id="viewAnalyticsBtn" class="inline-block mt-1 text-xs underline hover:text-blue-200 transition bg-transparent border-none p-0 cursor-pointer">view details</button>
+                    </div>
+                    <button id="exportAnalyticsBtn" class="w-max flex items-center gap-2 bg-white text-gray-800 px-5 py-2 rounded-lg text-xs font-bold shadow-sm hover:bg-gray-100 transition">
+                        <span class="spinner"></span>
+                        <span class="btn-content flex items-center gap-2"><i class="fas fa-share-from-square text-red-600"></i> Export</span>
+                    </button>
+                </div>
+
+                <div class="card-orange p-6 rounded-2xl text-white shadow-lg flex flex-col justify-between h-44">
+                    <h3 class="text-lg font-bold">Candidate Narrative<br>Reports</h3>
+                    <button class="direct-pdf-btn w-max flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-100 transition">
+                        <span class="spinner"></span>
+                        <span class="btn-content flex items-center gap-2"><i class="fas fa-file-pdf text-red-600"></i> Generate & Download PDF</span>
+                    </button>
+                </div>
+
+                <div class="card-green p-6 rounded-2xl text-white shadow-lg flex flex-col justify-between h-44">
+                    <h3 class="text-lg font-bold">Final Election<br>Results</h3>
+                    <button class="direct-pdf-btn w-max flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-100 transition">
+                        <span class="spinner"></span>
+                        <span class="btn-content flex items-center gap-2"><i class="fas fa-file-pdf text-red-600"></i> Official PDF</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                <h3 class="text-xl font-bold text-gray-800">Audit Log</h3>
+                <button id="exportAuditBtn" class="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-blue-600 transition">
+                    <span class="spinner"></span>
+                    <span class="btn-content flex items-center gap-2">
+                        <i class="fas fa-download"></i> <span class="underline text-black font-bold">Download Audit Log</span>
+                    </span>
+                </button>
+            </div>
+
+            <div class="space-y-4 mb-6 bg-gray-50 p-5 rounded-2xl border border-gray-100 shadow-sm">
+                <div class="flex flex-col lg:flex-row gap-4">
+                    <div class="relative flex-1">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" id="auditSearch" placeholder="Search Administrator, Action, or Details" class="w-full pl-12 pr-4 py-2.5 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm text-sm">
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-gray-200 shadow-sm">
+                            <span class="text-xs font-bold text-gray-400 uppercase">From:</span>
+                            <input type="date" id="dateFrom" class="text-sm text-gray-600 focus:outline-none bg-transparent">
+                            <input type="time" id="timeFrom" class="text-sm text-gray-600 focus:outline-none bg-transparent border-l pl-2 border-gray-200">
+                        </div>
+                        <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-gray-200 shadow-sm">
+                            <span class="text-xs font-bold text-gray-400 uppercase">To:</span>
+                            <input type="date" id="dateTo" class="text-sm text-gray-600 focus:outline-none bg-transparent">
+                            <input type="time" id="timeTo" class="text-sm text-gray-600 focus:outline-none bg-transparent border-l pl-2 border-gray-200">
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="applyFilterBtn" class="bg-btn-gradient text-white px-6 py-2 rounded-full text-sm font-semibold hover:brightness-110 transition shadow-md">Apply</button>
+                            <button id="resetFilterBtn" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-full text-sm font-semibold hover:bg-gray-300 transition shadow-sm">Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex-1">
+                <div class="overflow-x-auto overflow-y-auto max-h-[300px] custom-scrollbar">
+                    <table class="w-full text-left min-w-[600px] border-collapse">
+                        <thead class="bg-btn-gradient text-white sticky top-0 z-10">
+                            <tr>
+                                <th class="px-6 py-4 font-semibold text-xs uppercase tracking-wider">Timestamp</th>
+                                <th class="px-6 py-4 font-semibold text-xs uppercase tracking-wider">Administrator</th>
+                                <th class="px-6 py-4 font-semibold text-xs uppercase tracking-wider">Action</th>
+                                <th class="px-6 py-4 font-semibold text-xs uppercase tracking-wider">Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditLogBody" class="divide-y divide-gray-200 bg-white"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="analyticsModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-overlay">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl relative">
+            <button id="closeAnalytics" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times"></i></button>
+            <h3 class="text-xl font-bold text-gray-800 mb-6">Voter Distribution (Year Level)</h3>
+            <div class="space-y-4">
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs font-bold text-gray-500"><span>1st Year</span><span>7 Students</span></div>
+                    <div class="w-full bg-gray-100 rounded-full h-4"><div class="bg-blue-500 h-4 rounded-full" style="width: 20%"></div></div>
+                </div>
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs font-bold text-gray-500"><span>2nd Year</span><span>11 Students</span></div>
+                    <div class="w-full bg-gray-100 rounded-full h-4"><div class="bg-orange-500 h-4 rounded-full" style="width: 32%"></div></div>
+                </div>
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs font-bold text-gray-500"><span>3rd Year</span><span>10 Students</span></div>
+                    <div class="w-full bg-gray-100 rounded-full h-4"><div class="bg-green-500 h-4 rounded-full" style="width: 29%"></div></div>
+                </div>
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs font-bold text-gray-500"><span>4th Year</span><span>6 Students</span></div>
+                    <div class="w-full bg-gray-100 rounded-full h-4"><div class="bg-red-500 h-4 rounded-full" style="width: 17%"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="exportModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-overlay">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl text-center">
+            <h3 class="text-xl font-bold text-gray-800 mb-8">Export as?</h3>
+            <div class="flex gap-4">
+                <button class="export-opt flex-1 p-4 border rounded-2xl hover:bg-red-50 hover:border-red-200 transition group">
+                    <i class="fas fa-file-pdf text-3xl text-red-500 mb-2"></i>
+                    <p class="text-sm font-bold text-gray-600">PDF</p>
+                </button>
+                <button class="export-opt flex-1 p-4 border rounded-2xl hover:bg-emerald-50 hover:border-emerald-200 transition group">
+                    <i class="fas fa-file-excel text-3xl text-emerald-500 mb-2"></i>
+                    <p class="text-sm font-bold text-gray-600">Excel</p>
+                </button>
+            </div>
+            <button id="closeExport" class="mt-6 text-sm text-gray-400 hover:text-gray-600 font-semibold underline">Cancel</button>
+        </div>
+    </div>
+
+    <div id="successToast" class="fixed top-10 left-1/2 -translate-x-1/2 z-[100] hidden">
+        <div class="bg-white shadow-2xl border border-emerald-100 rounded-2xl p-4 flex items-center gap-3">
+            <i class="fas fa-check-circle text-emerald-500 text-xl"></i>
+            <div>
+                <h4 class="font-bold text-gray-800 text-sm">Process Completed Successfully</h4>
+                <p class="text-xs text-gray-500">Check your downloads folder for the report.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="logoutModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-overlay">
+        <div class="bg-white rounded-2xl p-8 w-full max-w-sm shadow-2xl text-center">
+            <h4 class="text-lg font-bold text-gray-800 mb-6 px-4">Are you sure you want to logout?</h4>
+            <div class="flex gap-4">
+                <button id="closeLogout" class="flex-1 py-2.5 border border-gray-300 rounded-full font-semibold text-gray-600 hover:bg-gray-100 transition">Cancel</button>
+                <button id="confirmLogout" class="flex-1 py-2.5 bg-btn-gradient text-white rounded-full font-semibold hover:brightness-110 transition">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/Leader-RandD.js"></script>
+</body>
+</html>
