@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UMelec - Verification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .custom-gradient { background: linear-gradient(135deg, #0098E0 0%, #00537A 100%); }
+        .btn-active { background: linear-gradient(to bottom, #0098E0 0%, #00537A 100%) !important; }
+        .input-border { border: 1.5px solid #D1D5DB; }
+        .input-error { border: 1.5px solid #D33131 !important; }
+        .otp-input::-webkit-inner-spin-button, .otp-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="bg-white h-screen overflow-hidden font-sans">
+
+    <div id="dimOverlay" class="hidden fixed inset-0 bg-black/50 z-40 transition-opacity duration-500"></div>
+    <div id="successDialog" class="hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-[90%] max-w-sm bg-white p-8 rounded-[2.5rem] shadow-2xl text-center">
+        <div class="flex justify-center mb-4">
+            <div class="bg-[#3AB795] rounded-full p-3">
+                <svg class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7" /></svg>
+            </div>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-800">Code Verified</h2>
+        <p class="text-base text-gray-500 mt-2">Proceed to reset password.</p>
+        <button onclick="window.location.href='Leader-ResetPassword.html'" class="w-full btn-active text-white font-bold py-3 rounded-full mt-6 text-lg">Continue</button>
+    </div>
+
+    <div class="flex flex-col md:flex-row h-screen w-full">
+        <div class="custom-gradient w-full md:w-2/3 flex items-center justify-center p-8 h-2/5 md:h-full">
+            <img src="images/COSELLOGO.png" alt="Logo" class="w-40 md:w-56 lg:w-60 h-auto drop-shadow-2xl">
+        </div>
+
+        <div class="w-full md:w-1/3 p-6 md:p-10 lg:p-12 flex flex-col justify-center bg-white h-3/5 md:h-full shadow-2xl">
+            <div class="max-w-md mx-auto w-full text-center">
+                <h1 class="text-3xl font-bold text-gray-800">Verification</h1>
+                <p class="text-gray-500 mt-4 text-sm">Enter Verification Code:</p>
+
+                <div id="otpContainer" class="flex justify-between gap-2 mt-8 mb-6">
+                    <input type="number" maxlength="1" class="otp-input w-12 h-14 text-center text-xl font-bold input-border rounded-xl focus:outline-none focus:border-[#0098E0]">
+                    <input type="number" maxlength="1" class="otp-input w-12 h-14 text-center text-xl font-bold input-border rounded-xl focus:outline-none focus:border-[#0098E0]">
+                    <input type="number" maxlength="1" class="otp-input w-12 h-14 text-center text-xl font-bold input-border rounded-xl focus:outline-none focus:border-[#0098E0]">
+                    <input type="number" maxlength="1" class="otp-input w-12 h-14 text-center text-xl font-bold input-border rounded-xl focus:outline-none focus:border-[#0098E0]">
+                    <input type="number" maxlength="1" class="otp-input w-12 h-14 text-center text-xl font-bold input-border rounded-xl focus:outline-none focus:border-[#0098E0]">
+                    <input type="number" maxlength="1" class="otp-input w-12 h-14 text-center text-xl font-bold input-border rounded-xl focus:outline-none focus:border-[#0098E0]">
+                </div>
+
+                <div class="mb-8">
+                    <p class="text-xs text-gray-500">Otp not received?</p>
+                    <button id="resendBtn" disabled class="text-xs font-bold text-gray-800">Resend code in <span id="timer">60</span> seconds</button>
+                    
+                    <div id="resendToast" class="hidden mt-4 flex items-center bg-[#F3F4F6] border-l-4 border-[#27A688] p-3 rounded-xl shadow-md mx-auto max-w-[250px]">
+                        <div class="bg-[#27A688] rounded-full p-1"><svg class="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg></div>
+                        <div class="ml-3 text-left"><p class="text-[11px] text-gray-800 font-bold">Code sent!</p><p class="text-[9px] text-gray-500">Check your UMak email inbox.</p></div>
+                    </div>
+
+                    <div id="errorToast" class="hidden mt-4 flex items-center bg-[#F3F4F6] border-l-4 border-[#D33131] p-3 rounded-xl shadow-md mx-auto max-w-[250px]">
+                        <div class="bg-[#D33131] rounded-full p-1"><svg class="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" /></svg></div>
+                        <div class="ml-3 text-left"><p class="text-[11px] text-gray-800 font-bold">Code Error</p><p class="text-[9px] text-gray-500">Incorrect Code.</p></div>
+                    </div>
+                </div>
+
+                <button id="verifyBtn" disabled class="w-full bg-gray-400 text-white font-bold py-3.5 rounded-2xl transition-all text-lg shadow-lg cursor-not-allowed">Verify</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/Leader-Verify.js"></script>
+</body>
+</html>

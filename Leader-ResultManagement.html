@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Result Management - COSEL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Revisions: Gradients light top to dark bottom */
+        .bg-sidebar-gradient { background: linear-gradient(to bottom, #0098E0, #00537A); }
+        .bg-btn-gradient { background: linear-gradient(to bottom, #0098E0, #00537A); }
+        .bg-nav-active, .hover-nav:hover { background: linear-gradient(to bottom, #F5A304, #8F5F02) !important; color: white !important; }
+        .card-header-gradient { background: linear-gradient(to bottom, #0098E0, #00537A); }
+        
+        .modal-overlay { background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
+        
+        /* Toast Animation */
+        @keyframes centerFadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -60%); }
+            15% { opacity: 1; transform: translate(-50%, -50%); }
+            85% { opacity: 1; transform: translate(-50%, -50%); }
+            100% { opacity: 0; transform: translate(-50%, -40%); }
+        }
+        .toast-animate-center { animation: centerFadeInOut 3s forwards; }
+    </style>
+</head>
+<body class="bg-white font-sans overflow-x-hidden">
+
+    <div class="flex flex-col lg:flex-row min-h-screen p-0 lg:p-4 gap-0 lg:gap-6">
+        <aside class="w-full lg:w-72 bg-sidebar-gradient lg:rounded-3xl flex flex-col p-6 text-white shadow-xl z-10">
+            <div class="flex items-center gap-3 mb-6 lg:mb-10">
+                <img src="images/COSELLOGO.png" alt="Logo" class="w-10 h-10 lg:w-12 lg:h-12 rounded-full border border-white/30">
+                <h1 class="text-xs lg:text-sm font-bold leading-tight uppercase tracking-wide">Commission on <br> Student Election</h1>
+            </div>
+            
+            <nav class="flex flex-row lg:flex-col flex-1 gap-2 lg:gap-4 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0">
+                <a href="Leader-VoterManagement.html" class="flex-none lg:w-full flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80 hover:text-white whitespace-nowrap">
+                    <i class="fas fa-users text-sm"></i>
+                    <span class="font-medium text-sm lg:text-base">Voter Management</span>
+                </a>
+                <button class="flex-none lg:w-full flex items-center gap-3 p-3 rounded-lg bg-nav-active shadow-md transition whitespace-nowrap text-white">
+                    <i class="fas fa-poll text-sm"></i>
+                    <span class="font-medium text-sm lg:text-base">Result Management</span>
+                </button>
+                <a href="Leader-RandD.html" class="flex-none lg:w-full flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80 hover:text-white whitespace-nowrap">
+                    <i class="fas fa-file-alt text-sm"></i>
+                    <span class="font-medium text-sm lg:text-base">Reports and Documents</span>
+                </a>
+            </nav>
+
+            <button id="logoutSidebarBtn" class="mt-4 lg:mt-0 w-full py-2 lg:py-3 rounded-xl bg-btn-gradient border border-white/20 shadow-lg font-semibold hover:brightness-110 transition text-sm text-white">
+                Logout
+            </button>
+        </aside>
+
+        <main class="flex-1 bg-white p-4 lg:p-8 flex flex-col min-w-0 overflow-y-auto">
+            <h2 class="text-xl lg:text-2xl font-bold text-gray-800 mb-2">Result Management</h2>
+            
+            <div class="mb-6">
+                <h3 id="tallyHeader" class="text-lg font-bold text-gray-700">Unofficial Tallies - <span id="electionName">CCIS Student Council Election</span></h3>
+                <p id="tallySubtext" class="text-gray-500 text-sm italic font-medium">Election ended. Unverified counts pending your approval.</p>
+                <p id="verifiedTimestamp" class="text-gray-400 text-xs font-semibold">As of March 20, 2026, 10:00 PM</p>
+            </div>
+
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-full bg-btn-gradient flex items-center justify-center text-white font-bold text-lg shadow-inner">
+                    <span id="totalVotesCount">15</span>
+                </div>
+                <p class="font-bold text-gray-700">Total votes counted</p>
+            </div>
+
+            <div id="talliesContainer" class="space-y-8 w-full max-w-6xl"></div>
+
+            <div class="mt-12 flex justify-end max-w-6xl">
+                <button id="approveResultsBtn" class="flex items-center gap-2 bg-btn-gradient text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:brightness-110 transition-all">
+                    <i class="fas fa-thumbs-up"></i> Approve Results
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <div id="confirmDialog" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-overlay">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl text-center">
+            <h4 class="text-xl font-bold text-gray-800 mb-8 leading-relaxed">Confirm and publish results?</h4>
+            <div class="flex gap-4">
+                <button id="cancelApprove" class="flex-1 py-3 border-2 border-orange-400 text-gray-700 rounded-full font-bold hover:bg-orange-50 transition">Cancel</button>
+                <button id="confirmApprove" class="flex-1 py-3 bg-btn-gradient text-white rounded-full font-bold hover:brightness-110 shadow-lg transition">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastOverlay" class="fixed inset-0 z-[100] hidden modal-overlay" onclick="closeToast()">
+        <div id="successToast" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white shadow-2xl border border-emerald-100 rounded-3xl p-8 flex flex-col items-center gap-4 text-center min-w-[320px]" onclick="event.stopPropagation()">
+            <i class="fas fa-check-circle text-emerald-500 text-6xl"></i>
+            <h4 class="font-bold text-gray-800 text-xl font-sans">Results are now official.</h4>
+        </div>
+    </div>
+
+    <div id="logoutModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-overlay">
+        <div class="bg-white rounded-2xl p-8 w-full max-w-sm shadow-2xl text-center">
+            <h4 class="text-lg font-bold text-gray-800 mb-6">Are you sure you want to logout?</h4>
+            <div class="flex gap-4">
+                <button id="closeLogout" class="flex-1 py-2.5 border border-gray-300 rounded-full font-semibold text-gray-600 hover:bg-gray-100 transition shadow-sm">Cancel</button>
+                <button id="confirmLogout" class="flex-1 py-2.5 bg-btn-gradient text-white rounded-full font-semibold hover:brightness-110 transition shadow-sm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/Leader-Result.js"></script>
+</body>
+</html>
