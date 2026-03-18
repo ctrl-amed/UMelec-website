@@ -5,6 +5,8 @@
  * 3. Use the 'auth' instance to replace the "Fake Credentials Logic" below.
  */
 
+
+
 const loginForm = document.querySelector('#loginForm');
 const emailInput = document.querySelector('#emailInput');
 const passwordInput = document.querySelector('#password');
