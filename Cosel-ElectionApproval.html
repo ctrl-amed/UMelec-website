@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosel - Election Approval</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .bg-sidebar-gradient, .bg-blue-gradient { background: linear-gradient(to bottom, #0098E0, #00537A); }
+        .bg-nav-active, .hover-nav:hover { background: linear-gradient(to bottom, #F5A304, #8F5F02) !important; color: white !important; }
+        
+        /* Filter Button Styles */
+        .filter-btn { transition: all 0.3s ease; border: 1px solid #e5e7eb; }
+        .filter-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .filter-btn.active { background: linear-gradient(to bottom, #0098E0, #00537A); color: white; border-color: transparent; }
+
+        #logoutModalOverlay {
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(2px);
+            z-index: 100;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800">
+
+    <div class="flex flex-col lg:flex-row min-h-screen p-0 lg:p-4 gap-0 lg:gap-6">
+        <aside class="w-full lg:w-72 bg-sidebar-gradient lg:rounded-3xl flex flex-col p-6 text-white shadow-xl z-10">
+            <div class="flex items-center gap-3 mb-10">
+                <img src="images/COSELLOGO.png" alt="Logo" class="w-12 h-12 rounded-full border border-white/30">
+                <h1 class="text-sm font-bold leading-tight uppercase tracking-wide">Commission on <br> Student Election</h1>
+            </div>
+            <nav class="flex flex-col gap-2 flex-1">
+                <a href="Cosel-Homepage.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80"><i class="fas fa-home text-sm"></i> <span class="font-medium">Homepage</span></a>
+                <a href="Cosel-ElectionMonitoring.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80"><i class="fas fa-chart-line text-sm"></i> <span class="font-medium">Election Monitoring</span></a>
+                <a href="Cosel-ElectionApproval.html" class="flex items-center gap-3 p-3 rounded-lg bg-nav-active shadow-md transition"><i class="fas fa-check-circle text-sm"></i> <span class="font-medium">Election Approval</span></a>
+                <a href="Cosel-UserManagement.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80"><i class="fas fa-users-cog text-sm"></i> <span class="font-medium">User Management</span></a>
+                <a href="Cosel-ATMonitoring.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80"><i class="fas fa-history text-sm"></i> <span class="font-medium">Audit Trail Monitoring</span></a>
+                <a href="Cosel-FandA.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80"><i class="fas fa-bullhorn text-sm"></i> <span class="font-medium">FAQs & Announcements</span></a>
+                <a href="Cosel-Settings.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80"><i class="fas fa-cog text-sm"></i> <span class="font-medium">Settings</span></a>
+            </nav>
+            <button onclick="showLogoutModal()" class="mt-8 w-full py-3 rounded-xl bg-blue-gradient border border-white/20 shadow-lg font-semibold hover:brightness-110 transition text-sm">Logout</button>
+        </aside>
+
+        <main class="flex-1 p-4 lg:p-6">
+            <header class="mb-8">
+                <h2 class="text-2xl font-black text-gray-800">Election Approval</h2>
+                <p class="text-gray-500 font-medium text-sm">Review and manage election requests</p>
+            </header>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <button onclick="filterByStatus('Pending')" id="btn-Pending" class="filter-btn bg-white py-4 rounded-2xl font-bold text-gray-600 shadow-sm active">Pending</button>
+                <button onclick="filterByStatus('Approved')" id="btn-Approved" class="filter-btn bg-white py-4 rounded-2xl font-bold text-gray-600 shadow-sm">Approved</button>
+                <button onclick="filterByStatus('Rejected')" id="btn-Rejected" class="filter-btn bg-white py-4 rounded-2xl font-bold text-gray-600 shadow-sm">Rejected</button>
+                <button onclick="filterByStatus('Completed')" id="btn-Completed" class="filter-btn bg-white py-4 rounded-2xl font-bold text-gray-600 shadow-sm">Completed</button>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-blue-gradient text-white text-[11px] uppercase tracking-widest font-bold">
+                                <th class="px-6 py-5">Election Title</th>
+                                <th class="px-6 py-5">College</th>
+                                <th class="px-6 py-5">Submitted By</th>
+                                <th class="px-6 py-5">Submission Date</th>
+                                <th class="px-6 py-5">Status</th>
+                                <th class="px-6 py-5 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="election-table-body" class="text-sm font-bold text-gray-600 divide-y divide-gray-50">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="logoutModalOverlay" class="fixed inset-0 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-[40px] p-10 max-w-sm w-full text-center shadow-2xl">
+            <h3 class="text-2xl text-gray-800 mb-8 leading-tight">Are you sure you want to logout?</h3>
+            <div class="flex gap-4">
+                <button onclick="closeLogoutModal()" class="flex-1 py-3 bg-white text-gray-800 rounded-full font-bold border border-gray-200 hover:bg-gray-50 transition shadow-sm">Cancel</button>
+                <a href="index.php" class="flex-1 py-3 bg-blue-gradient text-white rounded-full font-bold text-center hover:brightness-110 transition shadow-md">Confirm</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/Cosel-EApproval.js"></script>
+</body>
+</html>
