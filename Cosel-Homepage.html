@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosel - Homepage</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .bg-sidebar-gradient, .bg-btn-gradient, .bg-blue-gradient { background: linear-gradient(to bottom, #0098E0, #00537A); }
+        .bg-nav-active, .hover-nav:hover { background: linear-gradient(to bottom, #F5A304, #8F5F02) !important; color: white !important; }
+        .modal-overlay { background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
+        .preview-scrollbar::-webkit-scrollbar { width: 5px; }
+        .preview-scrollbar::-webkit-scrollbar-thumb { background: #0098E0; border-radius: 10px; }
+        
+        .filter-content { display: none; position: absolute; right: 0; top: 110%; z-index: 50; min-width: 160px; }
+        .filter-content.show { display: block; }
+        
+        .filter-option.active { background: linear-gradient(to bottom, #0098E0, #00537A) !important; color: white !important; }
+        
+        #logoutModalOverlay {
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(2px);
+            transition: opacity 0.3s;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 overflow-x-hidden">
+
+    <div class="flex flex-col lg:flex-row min-h-screen p-0 lg:p-4 gap-0 lg:gap-6">
+        <aside class="w-full lg:w-72 bg-sidebar-gradient lg:rounded-3xl flex flex-col p-6 text-white shadow-xl z-10">
+            <div class="flex items-center gap-3 mb-10">
+                <img src="images/COSELLOGO.png" alt="Logo" class="w-12 h-12 rounded-full border border-white/30">
+                <h1 class="text-sm font-bold leading-tight uppercase tracking-wide">Commission on <br> Student Election</h1>
+            </div>
+            <nav class="flex flex-col gap-2 flex-1">
+                <a href="Cosel-Homepage.html" class="flex items-center gap-3 p-3 rounded-lg bg-nav-active shadow-md transition"><i class="fas fa-home text-sm"></i> <span class="font-medium">Homepage</span></a>
+                <a href="Cosel-ElectionMonitoring.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80"><i class="fas fa-chart-line text-sm"></i> <span class="font-medium">Election Monitoring</span></a>
+                <a href="Cosel-ElectionApproval.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80"><i class="fas fa-check-circle text-sm"></i> <span class="font-medium">Election Approval</span></a>
+                <a href="Cosel-UserManagement.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80"><i class="fas fa-users-cog text-sm"></i> <span class="font-medium">User Management</span></a>
+                <a href="Cosel-ATMonitoring.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80"><i class="fas fa-history text-sm"></i> <span class="font-medium">Audit Trail Monitoring</span></a>
+                <a href="Cosel-FandA.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80"><i class="fas fa-bullhorn text-sm"></i> <span class="font-medium">FAQs & Announcements</span></a>
+                <a href="Cosel-Settings.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80"><i class="fas fa-cog text-sm"></i> <span class="font-medium">Settings</span></a>
+            </nav>
+            
+            <button onclick="showLogoutModal()" class="mt-8 w-full py-3 rounded-xl bg-btn-gradient border border-white/20 shadow-lg font-semibold hover:brightness-110 transition text-sm">Logout</button>
+        </aside>
+
+        <main class="flex-1 p-4 lg:p-6 overflow-y-auto">
+            <header class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-800">Welcome!</h2>
+                <p id="current-date" class="text-gray-500 font-medium"></p>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 w-full">
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between h-52">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-clock text-black text-lg"></i>
+                        <p class="text-black text-xs font-bold uppercase tracking-widest">Pending Approvals</p>
+                    </div>
+                    <div class="inline-block w-max px-5 py-1.5 bg-blue-gradient rounded-2xl text-white text-3xl font-black">05</div>
+                    <a href="#" class="text-blue-500 text-sm font-bold underline">View pending approvals</a>
+                </div>
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between h-52">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-play-circle text-black text-lg"></i>
+                        <p class="text-black text-xs font-bold uppercase tracking-widest">Ongoing Elections</p>
+                    </div>
+                    <div class="inline-block w-max px-5 py-1.5 bg-blue-gradient rounded-2xl text-white text-3xl font-black">08</div>
+                    <a href="#" class="text-blue-500 text-sm font-bold underline">View ongoing elections</a>
+                </div>
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between h-52">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-user-friends text-black text-lg"></i>
+                        <p class="text-black text-xs font-bold uppercase tracking-widest">Registered Users</p>
+                    </div>
+                    <div class="inline-block w-max px-5 py-1.5 bg-blue-gradient rounded-2xl text-white text-3xl font-black">154</div>
+                    <a href="#" class="text-blue-500 text-sm font-bold underline">View all users</a>
+                </div>
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between h-52">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-check-double text-black text-lg"></i>
+                        <p class="text-black text-xs font-bold uppercase tracking-widest">Completed Elections</p>
+                    </div>
+                    <div class="inline-block w-max px-5 py-1.5 bg-blue-gradient rounded-2xl text-white text-3xl font-black">24</div>
+                    <a href="#" class="text-blue-500 text-sm font-bold underline">View completed elections</a>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 w-full">
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col h-[600px] overflow-hidden">
+                    <div class="p-6 bg-gray-50 border-b">
+                        <h3 class="text-lg font-bold text-gray-800">Elections Requiring Immediate Action</h3>
+                        <div class="flex justify-between mt-4 text-[10px] font-black uppercase text-gray-400 px-2">
+                            <span>Election Title</span>
+                            <span>Status</span>
+                        </div>
+                    </div>
+                    <div id="immediate-action-list" class="p-4 overflow-y-auto preview-scrollbar space-y-2"></div>
+                </div>
+
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col h-[600px] overflow-hidden">
+                    <div class="p-6 bg-gray-50 border-b">
+                        <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4">
+                            <i class="fas fa-user-tie text-black"></i> Candidates Preview
+                        </h3>
+                        <div class="flex gap-2 relative">
+                            <div class="relative flex-1">
+                                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                <input type="text" id="search-input" placeholder="Search college or title..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:ring-1 focus:ring-blue-400 shadow-sm transition">
+                            </div>
+                            <div class="relative">
+                                <button onclick="toggleFilterMenu()" class="h-full bg-blue-gradient text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 hover:brightness-110 shadow-md transition">
+                                    <i class="fas fa-filter text-xs"></i> Filter
+                                </button>
+                                <div id="filter-dropdown" class="filter-content bg-white border border-gray-200 shadow-xl rounded-xl overflow-hidden">
+                                    <button onclick="applyFilter('all')" id="filter-all" class="filter-option active w-full text-left px-4 py-3 text-xs font-bold hover:bg-gray-50 border-b border-gray-50 text-black">All Status</button>
+                                    <button onclick="applyFilter('ongoing')" id="filter-ongoing" class="filter-option w-full text-left px-4 py-3 text-xs font-bold hover:bg-gray-50 border-b border-gray-50 text-black">Ongoing</button>
+                                    <button onclick="applyFilter('completed')" id="filter-completed" class="filter-option w-full text-left px-4 py-3 text-xs font-bold hover:bg-gray-50 text-black">Completed</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="college-grid" class="p-6 overflow-y-auto preview-scrollbar space-y-6"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="candidatesModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-overlay">
+        <div class="bg-white rounded-3xl w-full max-w-3xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-blue-gradient p-6 text-white flex justify-between items-start">
+                <div>
+                    <h4 id="modalCollegeName" class="text-xs font-bold uppercase tracking-widest opacity-80"></h4>
+                    <h3 id="modalElectionTitle" class="text-xl font-black"></h3>
+                </div>
+                <button onclick="closeModal('candidatesModal')" class="text-white/80 hover:text-white text-xl"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="candidatesList" class="p-8 overflow-y-auto preview-scrollbar"></div>
+        </div>
+    </div>
+
+    <div id="logoutModalOverlay" class="fixed inset-0 z-[200] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-[40px] p-10 max-w-sm w-full text-center shadow-2xl">
+            <h3 class="text-2xl text-gray-800 mb-8 leading-tight">Are you sure you want to logout?</h3>
+            <div class="flex gap-4">
+                <button onclick="closeLogoutModal()" class="flex-1 py-3 bg-white text-gray-800 rounded-full font-bold border border-gray-200 hover:bg-gray-50 transition shadow-sm">Cancel</button>
+                <a href="index.html" class="flex-1 py-3 bg-blue-gradient text-white rounded-full font-bold text-center hover:brightness-110 transition shadow-md">Confirm</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/Cosel-Homepage.js"></script>
+</body>
+</html>

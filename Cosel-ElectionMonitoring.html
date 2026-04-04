@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosel - Analytics and Reports</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .bg-sidebar-gradient, .bg-btn-gradient, .bg-blue-gradient { background: linear-gradient(to bottom, #0098E0, #00537A); }
+        .bg-nav-active, .hover-nav:hover { background: linear-gradient(to bottom, #F5A304, #8F5F02) !important; color: white !important; }
+        .modal-overlay { background-color: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); }
+        .dropdown-content { display: none; position: absolute; z-index: 50; top: 110%; left: 0; min-width: 220px; }
+        .dropdown-content.show { display: block; }
+        .status-tab { position: relative; font-weight: 800; color: #9CA3AF; transition: all 0.3s; cursor: pointer; }
+        .status-tab.active { color: #0098E0; }
+        .status-tab.active::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 100%; height: 2.5px; background: #0098E0; }
+        .table-header-gradient { background: linear-gradient(to right, #0098E0, #00537A); color: white; }
+        .action-link { text-decoration: underline; text-underline-offset: 3px; transition: color 0.2s; }
+        .action-link:hover { color: #00537A; }
+        #toast-container { transition: opacity 0.3s ease, transform 0.3s ease; }
+        .tag-enter { animation: zoomIn 0.2s ease-out; }
+        @keyframes zoomIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        
+        #logoutModalOverlay {
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(2px);
+            transition: opacity 0.3s;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 overflow-x-hidden">
+
+    <div id="toast-overlay" class="fixed inset-0 z-[200] hidden flex items-center justify-center modal-overlay" onclick="hideToast()">
+        <div id="toast-container" class="bg-white rounded-3xl p-8 shadow-2xl max-w-sm w-full mx-4 text-center transform scale-95 opacity-0">
+            <div class="flex justify-center mb-4"><div class="w-16 h-16 bg-[#27A688] rounded-full flex items-center justify-center text-white text-3xl"><i class="fas fa-check"></i></div></div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Report generated successfully </h3>
+            <p class="text-gray-500 font-medium">Check your downloads folder </p>
+        </div>
+    </div>
+
+    <div class="flex flex-col lg:flex-row min-h-screen p-0 lg:p-4 gap-0 lg:gap-6">
+        <aside class="w-full lg:w-72 bg-sidebar-gradient lg:rounded-3xl flex flex-col p-6 text-white shadow-xl z-10">
+            <div class="flex items-center gap-3 mb-10">
+                <img src="images/COSELLOGO.png" alt="Logo" class="w-12 h-12 rounded-full border border-white/30">
+                <h1 class="text-sm font-bold leading-tight uppercase tracking-wide">Commission on <br> Student Election </h1>
+            </div>
+            <nav class="flex flex-col gap-2 flex-1">
+                <a href="Cosel-Homepage.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80"><i class="fas fa-home text-sm"></i> <span class="font-medium">Homepage</span></a>
+                <a href="Cosel-ElectionMonitoring.html" class="flex items-center gap-3 p-3 rounded-lg bg-nav-active shadow-md transition"><i class="fas fa-chart-line text-sm"></i> <span class="font-medium">Election Monitoring</span></a>
+                <a href="Cosel-ElectionApproval.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80"><i class="fas fa-check-circle text-sm"></i> <span class="font-medium">Election Approval</span></a>
+                <a href="Cosel-UserManagement.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80"><i class="fas fa-users-cog text-sm"></i> <span class="font-medium">User Management</span></a>
+                <a href="Cosel-ATMonitoring.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80"><i class="fas fa-history text-sm"></i> <span class="font-medium">Audit Trail Monitoring </span></a>
+                <a href="Cosel-FandA.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80"><i class="fas fa-bullhorn text-sm"></i> <span class="font-medium">FAQs & Announcements</span></a>
+                <a href="Cosel-Settings.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80"><i class="fas fa-cog text-sm"></i> <span class="font-medium">Settings</span></a>
+            </nav>
+            <button onclick="showLogoutModal()" class="mt-8 w-full py-3 rounded-xl bg-btn-gradient border border-white/20 shadow-lg font-semibold hover:brightness-110 transition text-sm">Logout</button>
+        </aside>
+
+        <main class="flex-1 p-4 lg:p-6 overflow-y-auto">
+            <header class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-black text-gray-800">Analytics and Reports </h2>
+                <div class="relative">
+                    <button onclick="toggleDropdown('download-drop')" class="w-10 h-10 bg-blue-gradient text-white rounded-xl flex items-center justify-center shadow-lg hover:brightness-110 transition"><i class="fas fa-download"></i></button>
+                    <div id="download-drop" class="dropdown-content right-0 left-auto bg-white border border-gray-100 rounded-xl shadow-xl py-2">
+                        <button onclick="handleDownloadAll()" class="w-full text-left px-4 py-3 text-xs font-bold text-blue-500 hover:bg-gray-50 border-b border-gray-100 uppercase tracking-tight"><i class="fas fa-file-export mr-2"></i> Download All </button>
+                        <button onclick="openDownloadModal()" class="w-full text-left px-4 py-3 text-xs font-bold text-blue-500 hover:bg-gray-50 uppercase tracking-tight"><i class="fas fa-filter mr-2"></i> Download per college </button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="flex flex-wrap items-center gap-3 mb-6">
+                <select id="time-filter" class="bg-white border border-gray-200 text-[11px] font-bold py-2.5 px-4 rounded-xl text-gray-600 outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"><option value="30">Last 30 Days</option></select>
+                <select id="college-filter" class="bg-white border border-gray-200 text-[11px] font-bold py-2.5 px-4 rounded-xl text-gray-600 outline-none focus:ring-2 focus:ring-blue-400 shadow-sm max-w-[200px]"><option value="all">All Colleges </option></select>
+                <select id="election-filter" class="bg-white border border-gray-200 text-[11px] font-bold py-2.5 px-4 rounded-xl text-gray-600 outline-none focus:ring-2 focus:ring-blue-400 shadow-sm max-w-[200px]"><option value="all">All Elections </option></select>
+                <button onclick="resetFilters()" class="bg-blue-gradient text-white text-[10px] font-black uppercase py-2.5 px-5 rounded-xl hover:brightness-110 shadow-md transition flex items-center gap-2"><i class="fas fa-sync-alt"></i> Reset </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"><p class="text-[12px] font-bold text-gray-800 uppercase tracking-tight mb-1">Total Elections Held </p><h3 id="stat-total-elections" class="text-4xl font-black text-gray-800">0</h3></div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"><p class="text-[12px] font-bold text-gray-800 uppercase tracking-tight mb-1">Overall Voter Turnout </p><h3 id="stat-turnout" class="text-4xl font-black text-gray-800">0%</h3></div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"><p class="text-[12px] font-bold text-gray-800 uppercase tracking-tight mb-1">Total Eligible Voters </p><h3 id="stat-eligible" class="text-4xl font-black text-gray-800">0</h3></div>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                    <h3 class="font-black text-gray-800 uppercase text-[10px] tracking-widest mb-6">Voter Distribution (Year Level)</h3>
+                    <div class="h-[220px]"><canvas id="voterBarChart"></canvas></div>
+                    <div class="mt-4 pt-4 border-t border-gray-50 flex justify-between items-center">
+                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Students</span>
+                        <span id="main-total-students" class="text-lg font-black text-gray-800">0</span>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100"><h3 class="font-black text-gray-800 uppercase text-[10px] tracking-widest mb-6">Election Summary</h3><div class="flex items-center justify-around h-[220px]"><div class="w-40 h-40"><canvas id="electionPieChart"></canvas></div><div id="pie-legend" class="space-y-3"></div></div></div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-center gap-8 mb-6">
+                    <h3 class="text-xl font-black text-gray-800">Election Monitoring</h3>
+                    <div class="flex gap-4">
+                        <span onclick="switchTab('ongoing')" id="tab-ongoing" class="status-tab active text-[10px] uppercase">Ongoing</span>
+                        <span onclick="switchTab('completed')" id="tab-completed" class="status-tab text-[10px] uppercase">Completed</span>
+                    </div>
+                </div>
+                <div class="overflow-hidden rounded-xl border border-gray-50">
+                    <table class="w-full text-left">
+                        <thead class="table-header-gradient text-[10px] font-bold uppercase">
+                            <tr>
+                                <th class="px-6 py-4">Election Title</th>
+                                <th class="px-6 py-4">College</th>
+                                <th class="px-6 py-4">Voting Ends</th>
+                                <th class="px-6 py-4 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="election-table-body" class="text-xs font-bold text-gray-600 divide-y divide-gray-50"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="detailsModal" class="fixed inset-0 z-[150] hidden flex items-center justify-center p-4 modal-overlay overflow-y-auto">
+        <div class="bg-white rounded-3xl w-full max-w-4xl shadow-2xl my-8 relative flex flex-col overflow-hidden">
+            <button onclick="closeModal('detailsModal')" class="absolute top-6 right-8 text-gray-400 hover:text-gray-800 text-3xl z-10">&times;</button>
+            <div class="p-8 overflow-y-auto max-h-[90vh]">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+                    <div>
+                        <span id="modal-status-badge" class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-green-100 text-green-600 mb-2 inline-block">Ongoing</span>
+                        <h2 id="modal-election-title" class="text-3xl font-black text-gray-800 leading-tight">Election Title</h2>
+                    </div>
+                    <div id="timer-card" class="bg-blue-gradient p-4 rounded-2xl text-white text-center min-w-[200px] shadow-lg">
+                        <p class="text-[10px] font-bold uppercase opacity-80 mb-1">Time Remaining</p>
+                        <div id="countdown-timer" class="text-xl font-black tracking-widest tabular-nums">00:00:00:00</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                        <h4 class="text-[11px] font-black uppercase text-gray-400 mb-4 tracking-widest">Voter Participation</h4>
+                        <div class="h-48 mb-4"><canvas id="modalPieChart"></canvas></div>
+                        <div class="flex justify-around items-center border-t border-gray-200 pt-4">
+                            <div class="text-center">
+                                <p id="percent-voted" class="text-xl font-black text-[#27A688]">0%</p>
+                                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Voted</p>
+                            </div>
+                            <div class="text-center">
+                                <p id="percent-not-voted" class="text-xl font-black text-[#515167]">0%</p>
+                                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Not Voted</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                        <h4 class="text-[11px] font-black uppercase text-gray-400 mb-4 tracking-widest">Votes per Year Level</h4>
+                        <div class="h-48"><canvas id="modalBarChart"></canvas></div>
+                        <div class="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
+                            <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Students</span>
+                            <span id="modal-total-students" class="text-lg font-black text-gray-800">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-8">
+                    <h3 id="tally-title" class="text-lg font-black text-gray-800 mb-4 uppercase tracking-tight">Live Tallies</h3>
+                    <div class="overflow-hidden rounded-xl border border-gray-100">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-100 text-[10px] font-bold uppercase text-gray-500">
+                                <tr><th class="px-6 py-3">Position / Candidate</th><th class="px-6 py-3 text-right">Votes Received</th></tr>
+                            </thead>
+                            <tbody id="tally-table-body" class="divide-y divide-gray-100 text-sm font-bold text-gray-700"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="winners-section" class="mb-8 hidden">
+                    <h3 class="text-lg font-black text-blue-600 mb-4 uppercase tracking-tight flex items-center gap-2"><i class="fas fa-trophy"></i> Election Winners</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="winners-container"></div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-black text-gray-800 mb-4 uppercase tracking-tight">Candidate Profiles</h3>
+                    <div id="candidate-profiles" class="space-y-6"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="downloadModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-overlay">
+        <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col">
+            <div class="bg-blue-gradient p-6 text-white"><h3 class="text-xl font-black uppercase">College Selection</h3></div>
+            <div class="p-6 space-y-5">
+                <select id="modal-college-select" onchange="addCollegeTag(this.value)" class="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none font-bold text-sm"><option value="" disabled selected>Select a college...</option></select>
+                <div id="tags-container" class="flex flex-wrap gap-2 min-h-[120px] p-4 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200"></div>
+                <div class="flex gap-3">
+                    <button onclick="closeModal('downloadModal')" class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold transition">Cancel</button>
+                    <button onclick="confirmBulkDownload()" class="flex-1 py-3 bg-blue-gradient text-white rounded-xl font-bold shadow-lg transition">Download Selected</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="logoutModalOverlay" class="fixed inset-0 z-[200] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-[40px] p-10 max-w-sm w-full text-center shadow-2xl">
+            <h4 class="text-lg font-bold text-gray-800 mb-6 px-4 leading-relaxed font-sans">Are you sure you want to logout?</h4>
+            <div class="flex gap-4">
+                <button onclick="closeLogoutModal()" class="flex-1 py-3 bg-white text-gray-800 rounded-full font-bold border border-gray-200 hover:bg-gray-50 transition shadow-sm">Cancel</button>
+                <a href="index.php" class="flex-1 py-3 bg-blue-gradient text-white rounded-full font-bold text-center hover:brightness-110 transition shadow-md">Confirm</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/Cosel-EMonitoring.js"></script>
+</body>
+</html>
