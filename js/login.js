@@ -1,11 +1,6 @@
-/**
- * BACKEND GUIDE FOR FIREBASE:
- * 1. Initialize Firebase in your project.
- * 2. Import: import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-auth.js";
- * 3. Use the 'auth' instance to replace the "Fake Credentials Logic" below.
- */
-
-
+import { auth, db } from './firebase.js';
+import { signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const loginForm = document.querySelector('#loginForm');
 const emailInput = document.querySelector('#emailInput');
@@ -16,22 +11,16 @@ const passwordErrorText = document.querySelector('#passwordError');
 const errorToast = document.querySelector('#errorToast');
 const successToast = document.querySelector('#successToast');
 const dimOverlay = document.querySelector('#dimOverlay');
-const togglePassword = document.querySelector('#togglePassword'); // Added for the Eye Icon
+const togglePassword = document.querySelector('#togglePassword');
 
-// --- PASSWORD VISIBILITY TOGGLE ---
-
-// This handles the "On and Off" functionality for the eye icon
+// --- 👁️ PASSWORD VISIBILITY TOGGLE ---
 togglePassword.addEventListener('click', function () {
-    // Toggle the type attribute
     const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
     passwordInput.setAttribute('type', type);
-    
-    // Optional: Toggle icon color to show it's active
     this.classList.toggle('text-[#0098E0]');
 });
 
-// --- BUTTON & UI LOGIC ---
-
+// --- 🔘 BUTTON & UI LOGIC ---
 function updateButtonState() {
     const isEmailFilled = emailInput.value.trim() !== "";
     const isPasswordFilled = passwordInput.value.trim() !== "";
@@ -59,8 +48,7 @@ function clearAllErrors() {
 emailInput.addEventListener('input', clearAllErrors);
 passwordInput.addEventListener('input', clearAllErrors);
 
-// --- LOGIN SUBMISSION ---
-
+// --- 🚀 LOGIN SUBMISSION WITH ROLE GATE ---
 loginForm.addEventListener('submit', function (e) {
     e.preventDefault();
     
@@ -80,30 +68,68 @@ loginForm.addEventListener('submit', function (e) {
         return;
     }
 
-    /**
-     * 2. BACKEND INTEGRATION POINT
-     * TODO: Replace this block with Firebase Auth
-     */
+    loginBtn.disabled = true;
+    loginBtn.innerText = "Authenticating...";
 
-    // --- TEMPORARY FAKE CREDENTIALS FOR TESTING ---
-    if (email === "leader@umak.edu.ph" && pass === "leader123") {
-        showSuccess("Login Success", "Welcome back, Leader!", "Leader-VoterManagement.html");
-    } 
-    else if (email === "cosel@umak.edu.ph" && pass === "cosel123") {
-        showSuccess("Temporary access granted.", "Security requires password change.", "Cosel-PasswordUpdate.html");
-    } 
-    else {
-        // WRONG CREDENTIALS UI
-        errorToast.classList.remove('hidden');
-        emailInput.classList.add('input-error');
-        passwordInput.classList.add('input-error');
-        emailInput.value = "";
-        passwordInput.value = "";
-        updateButtonState();
-    }
+    // 2. FIREBASE AUTHENTICATION
+    signInWithEmailAndPassword(auth, email, pass)
+        .then(async (userCredential) => {
+            const user = userCredential.user; 
+
+            // 3. FETCH PROFILE DATA FROM FIRESTORE
+            const userDocRef = doc(db, "users", user.uid); 
+            const userSnap = await getDoc(userDocRef);
+
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                // Ensure role comparison is case-insensitive
+                const userRole = userData.role ? userData.role.toUpperCase() : "";
+
+                // 4. 🛑 THE ROLE GATE: Voters cannot access the Web Portal
+                if (userRole !== "COSEL" && userRole !== "LEADER") {
+                    await signOut(auth);
+                    showError("Access Denied", "Voters can only login via the Mobile App.");
+                    return;
+                }
+
+                // 5. SAVE SESSION DATA
+                localStorage.setItem('userEmail', email);
+                localStorage.setItem('userFirstName', userData.firstname || "User");
+                localStorage.setItem('userRole', userRole);
+                localStorage.setItem('userUid', user.uid);
+
+                // 6. ROUTING LOGIC
+                if (userRole === "COSEL") {
+                    // Integrated COSEL Message
+                    showSuccess(
+                        "Temporary access granted.", 
+                        "Security requires password change.", 
+                        "Cosel-PasswordUpdate.html"
+                    );
+                } else if (userRole === "LEADER") {
+                    // Integrated Leader Message
+                    showSuccess(
+                        "Login Success", 
+                        `Welcome back, Leader ${userData.firstname}!`, 
+                        "Leader-VoterManagement.html"
+                    );
+                }
+            } else {
+                // Auth account exists but no Firestore document
+                await signOut(auth);
+                showError("Database Error", "User profile not found.");
+            }
+        })
+        .catch((error) => {
+            console.error("Firebase Error:", error.message);
+            // Re-enable button on failure
+            loginBtn.disabled = false;
+            loginBtn.innerText = "Login";
+            showError("Login Failed", "Invalid email or password.");
+        });
 });
 
-// --- UI ANIMATIONS ---
+// --- ✨ UI ANIMATIONS & UTILS ---
 
 function showSuccess(title, sub, url) {
     document.querySelector('#successTitle').innerText = title;
@@ -116,4 +142,20 @@ function showSuccess(title, sub, url) {
     setTimeout(() => {
         window.location.href = url;
     }, 1500);
+}
+
+function showError(title, message) {
+    // Show the red toast/error UI
+    errorToast.classList.remove('hidden');
+    emailInput.classList.add('input-error');
+    passwordInput.classList.add('input-error');
+    
+    // Update text in the Toast
+    const errorTitleElem = errorToast.querySelector('.font-bold');
+    const errorMsgElem = errorToast.querySelector('.text-\\[10px\\]');
+    
+    if (errorTitleElem) errorTitleElem.textContent = title;
+    if (errorMsgElem) errorMsgElem.textContent = message;
+    
+    updateButtonState();
 }

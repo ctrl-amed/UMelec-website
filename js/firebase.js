@@ -1,6 +1,8 @@
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+// js/firebase.js
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFunctions } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDgdbRR1S8ng9lIn6k8XiLNOikbcxLL8Dc",
@@ -12,9 +14,13 @@ const firebaseConfig = {
   measurementId: "G-SLQZCEFD3W"
 };
 
-// Initialize Firebase
+// 1. Initialize the App
 const app = initializeApp(firebaseConfig);
 
-// Export these so the frontend team can "borrow" them
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+// 2. Initialize the Services
+const auth = getAuth(app);
+const db = getFirestore(app);
+const functions = getFunctions(app, "us-central1");
+
+// 3. Export everything at once (No duplicates)
+export { auth, db, functions };

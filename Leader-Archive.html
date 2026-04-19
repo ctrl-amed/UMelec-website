@@ -93,15 +93,15 @@
                     </div>
                     <div class="card-orange p-6 rounded-2xl text-white shadow-lg flex flex-col justify-between h-40">
                         <h3 class="text-lg font-bold">Candidate Narrative<br>Reports</h3>
-                        <button onclick="handleAutoDownload()" class="w-max bg-white text-black px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-100 transition">
-                            <i class="fas fa-file-pdf text-red-600 mr-2"></i> Download PDF
-                        </button>
+<button onclick="confirmDownload('narrative')" class="w-max bg-white text-black px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-100 transition">
+    <i class="fas fa-file-pdf text-red-600 mr-2"></i> Download PDF
+</button>
                     </div>
                     <div class="card-green p-6 rounded-2xl text-white shadow-lg flex flex-col justify-between h-40">
                         <h3 class="text-lg font-bold">Final Election<br>Results</h3>
-                        <button onclick="handleAutoDownload()" class="w-max bg-white text-black px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-100 transition">
-                            <i class="fas fa-file-pdf text-red-600 mr-2"></i> Official PDF
-                        </button>
+<button onclick="confirmDownload('official')" class="w-max bg-white text-black px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-100 transition">
+    <i class="fas fa-file-pdf text-red-600 mr-2"></i> Download PDF
+</button>
                     </div>
                 </div>
                 <div class="lg:w-2/3 bg-white border border-gray-200 rounded-3xl p-6 shadow-sm flex flex-col overflow-hidden">
@@ -143,6 +143,6 @@
         </div>
     </div>
 
-    <script src="js/Leader-Archive.js"></script>
+    <script type="module" src="js/Leader-Archive.js"></script>
 </body>
 </html>
