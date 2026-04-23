@@ -59,32 +59,35 @@
                         <i class="fas fa-clock text-black text-lg"></i>
                         <p class="text-black text-xs font-bold uppercase tracking-widest">Pending Approvals</p>
                     </div>
-                    <div class="inline-block w-max px-5 py-1.5 bg-blue-gradient rounded-2xl text-white text-3xl font-black">05</div>
-                    <a href="#" class="text-blue-500 text-sm font-bold underline">View pending approvals</a>
+                    <div class="inline-block w-max px-5 py-1.5 bg-blue-gradient rounded-2xl text-white text-3xl font-black">00</div>
+                    <button onclick="openStatModal('pending')" class="text-blue-500 text-sm font-bold underline text-left">View pending approvals</button>
                 </div>
+
                 <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between h-52">
                     <div class="flex items-center gap-3">
                         <i class="fas fa-play-circle text-black text-lg"></i>
                         <p class="text-black text-xs font-bold uppercase tracking-widest">Ongoing Elections</p>
                     </div>
-                    <div class="inline-block w-max px-5 py-1.5 bg-blue-gradient rounded-2xl text-white text-3xl font-black">08</div>
-                    <a href="#" class="text-blue-500 text-sm font-bold underline">View ongoing elections</a>
+                    <div class="inline-block w-max px-5 py-1.5 bg-blue-gradient rounded-2xl text-white text-3xl font-black">00</div>
+                    <button onclick="openStatModal('ongoing')" class="text-blue-500 text-sm font-bold underline text-left">View ongoing elections</button>
                 </div>
+
                 <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between h-52">
                     <div class="flex items-center gap-3">
                         <i class="fas fa-user-friends text-black text-lg"></i>
                         <p class="text-black text-xs font-bold uppercase tracking-widest">Registered Users</p>
                     </div>
-                    <div class="inline-block w-max px-5 py-1.5 bg-blue-gradient rounded-2xl text-white text-3xl font-black">154</div>
-                    <a href="#" class="text-blue-500 text-sm font-bold underline">View all users</a>
+                    <div class="inline-block w-max px-5 py-1.5 bg-blue-gradient rounded-2xl text-white text-3xl font-black">00</div>
+                    <button onclick="openStatModal('users')" class="text-blue-500 text-sm font-bold underline text-left">View all users</button>
                 </div>
+
                 <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between h-52">
                     <div class="flex items-center gap-3">
                         <i class="fas fa-check-double text-black text-lg"></i>
                         <p class="text-black text-xs font-bold uppercase tracking-widest">Completed Elections</p>
                     </div>
-                    <div class="inline-block w-max px-5 py-1.5 bg-blue-gradient rounded-2xl text-white text-3xl font-black">24</div>
-                    <a href="#" class="text-blue-500 text-sm font-bold underline">View completed elections</a>
+                    <div class="inline-block w-max px-5 py-1.5 bg-blue-gradient rounded-2xl text-white text-3xl font-black">00</div>
+                    <button onclick="openStatModal('completed')" class="text-blue-500 text-sm font-bold underline text-left">View completed elections</button>
                 </div>
             </div>
 
@@ -141,16 +144,35 @@
         </div>
     </div>
 
+    <div id="statModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+            <div class="bg-blue-gradient p-6 text-white flex justify-between items-center">
+                <div>
+                    <h3 id="statModalTitle" class="text-xl font-black uppercase tracking-tight">Detail View</h3>
+                    <p id="statModalSubtitle" class="text-blue-100 text-xs font-bold uppercase tracking-widest mt-1">Listing all records</p>
+                </div>
+                <button onclick="closeModal('statModal')" class="text-white/80 hover:text-white transition-colors">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <div class="p-4 border-b border-gray-100 bg-gray-50">
+                <input type="text" id="modal-search" placeholder="Search records..." 
+                       class="w-full px-4 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+            </div>
+            <div id="statModalList" class="flex-1 overflow-y-auto p-6 space-y-3 bg-gray-50/50 preview-scrollbar"></div>
+        </div>
+    </div>
+
     <div id="logoutModalOverlay" class="fixed inset-0 z-[200] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-[40px] p-10 max-w-sm w-full text-center shadow-2xl">
             <h3 class="text-2xl text-gray-800 mb-8 leading-tight">Are you sure you want to logout?</h3>
             <div class="flex gap-4">
                 <button onclick="closeLogoutModal()" class="flex-1 py-3 bg-white text-gray-800 rounded-full font-bold border border-gray-200 hover:bg-gray-50 transition shadow-sm">Cancel</button>
-                <a href="index.html" class="flex-1 py-3 bg-blue-gradient text-white rounded-full font-bold text-center hover:brightness-110 transition shadow-md">Confirm</a>
+                <button onclick="confirmLogout()" class="flex-1 py-3 bg-blue-gradient text-white rounded-full font-bold text-center hover:brightness-110 transition shadow-md">Confirm</button>
             </div>
         </div>
     </div>
 
-    <script src="js/Cosel-Homepage.js"></script>
+    <script type="module" src="js/Cosel-Homepage.js"></script>
 </body>
 </html>

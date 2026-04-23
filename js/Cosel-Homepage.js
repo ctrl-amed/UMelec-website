@@ -1,199 +1,265 @@
+import { auth, db } from './firebase.js';
+import { 
+    collection, 
+    onSnapshot, 
+    query, 
+    where, 
+    getDocs,
+    doc,
+    orderBy
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+// --- Global State ---
+let electionsDB = [];
+let currentFilterStatus = 'all';
+
+// --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Current Date
     const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
     const dateElem = document.getElementById('current-date');
     if(dateElem) dateElem.innerText = new Date().toLocaleDateString('en-US', dateOptions);
 
-    const colleges = [
-        "College of Liberal Arts and Sciences (CLAS)", "College of Innovative Teacher Education (CITE)",
-        "College of Human Kinetics (CHK)", "College of Engineering and Technology (CET)",
-        "College of Tourism and Hospitality Management (CTHM)", "School of Law (SOL)",
-        "College of Accountancy (IA)", "College of Business and Financial Science (CBFS)",
-        "College of Governance and Public Policy (CGPP)", "College of Computing and Information Sciences (CCIS)",
-        "College of Construction Sciences and Engineering (CCSE)", "Institute of Arts and Design (IAD)",
-        "Institute of Nursing (ION)", "Institute of Health Sciences (IIHS)",
-        "Institute for Social Development and Nation Building (ISDNB)", "Institute of Pharmacy (IOP)",
-        "Institute of Psychology (IOPsy)", "Institute of Social Work (ISW)",
-        "Institute of Technical Education and Skills Training (ITEST)", "Institute for Disaster and Emergency Management (IDEM)"
-    ];
-
-    const electionsDB = [
-        { college: "College of Computing and Information Sciences (CCIS)", title: "CCIS Student Council 2025", status: "ongoing" },
-        { college: "College of Computing and Information Sciences (CCIS)", title: "IT Society Election", status: "completed" },
-        { college: "College of Engineering and Technology (CET)", title: "CET Council 2025", status: "ongoing" },
-        { college: "School of Law (SOL)", title: "Law Student Gov", status: "completed" },
-        { college: "College of Accountancy (IA)", title: "Accountancy Board", status: "pending" },
-        { college: "College of Human Kinetics (CHK)", title: "Sports Council", status: "pending" }
-    ];
-
-    const candidatesDB = {
-        "CCIS Student Council 2025": [
-            { position: "President", name: "Jazzelle Albaladejo", img: "https://i.pravatar.cc/150?u=1" },
-            { position: "Vice President", name: "Alexis Claire", img: "https://i.pravatar.cc/150?u=3" }
-        ]
-    };
-
-    let currentFilterStatus = 'all';
-
-    function init() {
-        renderImmediateAction();
-        renderColleges('', 'all'); 
-        
-        const searchInput = document.getElementById('search-input');
-        if(searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                renderColleges(e.target.value, currentFilterStatus);
-            });
-        }
-    }
-
-    function renderImmediateAction() {
-        const list = document.getElementById('immediate-action-list');
-        if(!list) return;
-        const pendingItems = electionsDB.filter(e => e.status === 'pending');
-        list.innerHTML = pendingItems.map(e => `
-            <div class="flex justify-between items-center p-4 bg-white border border-gray-100 rounded-2xl shadow-sm">
-                <span class="font-bold text-gray-700 text-sm">${e.title}</span>
-                <span class="text-[10px] font-black uppercase text-red-600">Pending</span>
-            </div>
-        `).join('');
-    }
-
-    function renderColleges(query, status) {
-        const container = document.getElementById('college-grid');
-        if(!container) return;
-        container.innerHTML = '';
-        const lowerQuery = query.trim().toLowerCase();
-
-        colleges.forEach(college => {
-            const collegeNameMatches = college.toLowerCase().includes(lowerQuery);
-            const matchingElections = electionsDB.filter(e => {
-                const isNotPending = e.status !== 'pending';
-                const titleMatches = e.title.toLowerCase().includes(lowerQuery);
-                const statusMatches = status === 'all' || e.status === status;
-                return e.college === college && isNotPending && statusMatches && (titleMatches || collegeNameMatches);
-            });
-
-            let displayCollege = false;
-            if (status === 'all') {
-                if (lowerQuery === '') {
-                    displayCollege = true;
-                } else if (collegeNameMatches || matchingElections.length > 0) {
-                    displayCollege = true;
-                }
-            } else {
-                if (matchingElections.length > 0) {
-                    displayCollege = true;
-                }
-            }
-
-            if (displayCollege) {
-                const collegeDiv = document.createElement('div');
-                collegeDiv.className = "space-y-3";
-                
-                let html = `
-                    <div class="bg-blue-gradient p-3 rounded-xl text-white text-[10px] font-bold uppercase tracking-wider shadow-sm">
-                        ${college}
-                    </div>
-                    <div class="grid grid-cols-3 text-[9px] font-black text-gray-400 uppercase px-3">
-                        <span>Election Title</span><span class="text-center">Status</span><span class="text-right">Action</span>
-                    </div>
-                    <div class="space-y-2">
-                `;
-
-                if (matchingElections.length > 0) {
-                    html += matchingElections.map(e => `
-                        <div class="grid grid-cols-3 items-center bg-gray-50 p-3 rounded-xl border border-gray-100">
-                            <span class="text-xs font-bold text-gray-700 truncate pr-2">${e.title}</span>
-                            <span class="text-[9px] font-black uppercase text-center ${e.status === 'ongoing' ? 'text-emerald-500' : 'text-gray-400'}">${e.status}</span>
-                            <button onclick="viewCandidates('${college.replace(/'/g, "\\'")}', '${e.title.replace(/'/g, "\\")}')" class="text-[10px] font-black text-blue-500 hover:underline text-right">VIEW CANDIDATES</button>
-                        </div>`).join('');
-                } else {
-                    html += `<div class="text-[10px] text-gray-400 italic px-3 py-1">No available data</div>`;
-                }
-
-                html += `</div>`;
-                collegeDiv.innerHTML = html;
-                container.appendChild(collegeDiv);
-            }
-        });
-
-        if (container.innerHTML === '') {
-            container.innerHTML = `<div class="text-center py-10 text-gray-400 italic text-sm">No colleges or elections match your search/filter.</div>`;
-        }
-    }
-
-    // --- Logout Functions ---
-    window.showLogoutModal = () => {
-        const overlay = document.getElementById('logoutModalOverlay');
-        overlay.classList.remove('hidden');
-        overlay.classList.add('flex');
-        document.body.style.overflow = 'hidden'; 
-    };
-
-    window.closeLogoutModal = () => {
-        const overlay = document.getElementById('logoutModalOverlay');
-        overlay.classList.add('hidden');
-        overlay.classList.remove('flex');
-        document.body.style.overflow = ''; 
-    };
-
-    const logoutOverlay = document.getElementById('logoutModalOverlay');
-    if(logoutOverlay) {
-        logoutOverlay.addEventListener('click', function(e) {
-            if (e.target === this) closeLogoutModal();
-        });
-    }
-
-    // --- Other Global Functions ---
-    window.toggleFilterMenu = () => document.getElementById('filter-dropdown').classList.toggle('show');
-
-    window.applyFilter = (status) => {
-        currentFilterStatus = status;
-        document.querySelectorAll('.filter-option').forEach(btn => btn.classList.remove('active'));
-        const activeBtn = document.getElementById(`filter-${status}`);
-        if(activeBtn) activeBtn.classList.add('active');
-        document.getElementById('filter-dropdown').classList.remove('show');
-        renderColleges(document.getElementById('search-input').value, status);
-    };
-
-    window.viewCandidates = (collegeName, electionTitle) => {
-        const modal = document.getElementById('candidatesModal');
-        const list = document.getElementById('candidatesList');
-        document.getElementById('modalCollegeName').innerText = collegeName;
-        document.getElementById('modalElectionTitle').innerText = electionTitle;
-        const data = candidatesDB[electionTitle] || [{ position: "President", name: "Candidate Placeholder", img: "https://i.pravatar.cc/150?u=placeholder" }];
-        const grouped = data.reduce((acc, obj) => {
-            acc[obj.position] = acc[obj.position] || [];
-            acc[obj.position].push(obj);
-            return acc;
-        }, {});
-        list.innerHTML = Object.entries(grouped).map(([pos, members]) => `
-            <div class="mb-10">
-                <h5 class="text-center text-blue-500 font-black uppercase text-xs tracking-widest mb-8 border-b border-gray-100 pb-2">${pos}</h5>
-                <div class="flex flex-wrap justify-center gap-12">
-                    ${members.map(m => `
-                        <div class="text-center w-32">
-                            <div class="w-24 h-24 rounded-full border-4 border-gray-50 overflow-hidden mx-auto mb-4 shadow-sm">
-                                <img src="${m.img}" class="w-full h-full object-cover">
-                            </div>
-                            <p class="font-bold text-gray-800 text-sm leading-tight">${m.name}</p>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `).join('');
-        modal.classList.remove('hidden');
-    };
-
-    window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
-
-    window.addEventListener('click', (e) => {
-        if (!e.target.closest('button')) {
-            const dropdown = document.getElementById('filter-dropdown');
-            if (dropdown) dropdown.classList.remove('show');
+    auth.onAuthStateChanged(user => {
+        if (!user) {
+            window.location.href = "index.html";
+        } else {
+            startListeners();
         }
     });
 
-    init();
+    const searchInput = document.getElementById('search-input');
+    if(searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            renderColleges(e.target.value, currentFilterStatus);
+        });
+    }
 });
+
+function getEffectiveStatus(election) {
+    if (election.status === 'pending') return 'pending';
+    const now = new Date();
+    let isExpired = false;
+    if (election.endDate) {
+        const end = election.endDate.toDate ? election.endDate.toDate() : new Date(election.endDate);
+        isExpired = now > end;
+    }
+    if (isExpired || election.status === 'completed' || election.status === 'OFFICIAL') return 'completed';
+    return election.status; 
+}
+
+function startListeners() {
+    onSnapshot(collection(db, "elections"), (snapshot) => {
+        electionsDB = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        updateStats(electionsDB);
+        renderImmediateAction();
+        renderColleges(document.getElementById('search-input').value || '', currentFilterStatus);
+    });
+
+    onSnapshot(collection(db, "users"), (snapshot) => {
+        const countDisplay = document.querySelector('div:has(i.fa-user-friends) + div');
+        if (countDisplay) countDisplay.innerText = snapshot.size.toString().padStart(2, '0');
+    });
+}
+
+window.openStatModal = async (type) => {
+    const modal = document.getElementById('statModal');
+    const title = document.getElementById('statModalTitle');
+    const subtitle = document.getElementById('statModalSubtitle');
+    const list = document.getElementById('statModalList');
+    
+    list.innerHTML = `<div class="text-center py-10"><i class="fas fa-spinner fa-spin text-blue-500 text-2xl"></i></div>`;
+    modal.classList.remove('hidden');
+
+    let displayData = [];
+
+    if (type === 'users') {
+        title.innerText = "Registered Users";
+        subtitle.innerText = "System-wide user accounts";
+        try {
+            const snap = await getDocs(collection(db, "users"));
+            displayData = snap.docs.map(doc => {
+                const userData = doc.data();
+                
+                // CALLING THE EXACT FIREBASE FIELDS: firstname lastname
+                const fname = userData.firstname || "";
+                const lname = userData.lastname || "";
+                const fullName = `${fname} ${lname}`.trim();
+                
+                // CONVERT EMAIL TO LOWERCASE
+                const email = (userData.email || "no email").toLowerCase();
+
+                return { 
+                    primary: fullName || "Unknown User", 
+                    secondary: email,
+                    tag: (userData.role || 'USER').toUpperCase(),
+                    color: 'text-blue-500'
+                };
+            });
+        } catch (e) { console.error(e); }
+    } else {
+        const mapping = {
+            'pending': { t: 'Pending Approvals', s: 'Awaiting review' },
+            'ongoing': { t: 'Ongoing Elections', s: 'Active voting sessions' },
+            'completed': { t: 'Completed Elections', s: 'Finished/Official results' }
+        };
+        title.innerText = mapping[type].t;
+        subtitle.innerText = mapping[type].s;
+        displayData = electionsDB.filter(e => getEffectiveStatus(e) === type).map(e => ({
+            primary: e.title, secondary: e.college, tag: type.toUpperCase(),
+            color: type === 'pending' ? 'text-red-500' : (type === 'ongoing' ? 'text-emerald-500' : 'text-gray-400')
+        }));
+    }
+
+    renderStatList(displayData);
+    document.getElementById('modal-search').oninput = (e) => {
+        const query = e.target.value.toLowerCase();
+        renderStatList(displayData.filter(item => 
+            item.primary.toLowerCase().includes(query) || 
+            item.secondary.toLowerCase().includes(query)
+        ));
+    };
+};
+
+function renderStatList(data) {
+    const list = document.getElementById('statModalList');
+    if (data.length === 0) {
+        list.innerHTML = `<p class="text-center text-gray-400 py-10">No records found.</p>`;
+        return;
+    }
+    list.innerHTML = data.map(item => `
+        <div class="flex justify-between items-center p-4 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-blue-200 transition-all">
+            <div class="flex flex-col">
+                <span class="font-bold text-gray-800 text-sm">${item.primary}</span>
+                <span class="text-[10px] text-gray-400 font-medium lowercase tracking-wider">${item.secondary}</span>
+            </div>
+            <span class="text-[9px] font-black uppercase ${item.color}">${item.tag}</span>
+        </div>
+    `).join('');
+}
+
+function updateStats(data) {
+    const pendingCount = data.filter(e => e.status === 'pending').length;
+    const ongoingCount = data.filter(e => getEffectiveStatus(e) === 'ongoing').length;
+    const completedCount = data.filter(e => getEffectiveStatus(e) === 'completed').length;
+    const statBoxes = document.querySelectorAll('.inline-block.w-max.px-5.py-1\\.5');
+    if(statBoxes[0]) statBoxes[0].innerText = pendingCount.toString().padStart(2, '0');
+    if(statBoxes[1]) statBoxes[1].innerText = ongoingCount.toString().padStart(2, '0');
+    if(statBoxes[3]) statBoxes[3].innerText = completedCount.toString().padStart(2, '0');
+}
+
+function renderImmediateAction() {
+    const list = document.getElementById('immediate-action-list');
+    if(!list) return;
+    const pendingItems = electionsDB.filter(e => e.status === 'pending');
+    if (pendingItems.length === 0) {
+        list.innerHTML = `<p class="text-center text-gray-400 text-xs py-4">No pending approvals needed.</p>`;
+        return;
+    }
+    list.innerHTML = pendingItems.map(e => `
+        <div class="flex justify-between items-center p-4 bg-white border border-gray-100 rounded-2xl shadow-sm">
+            <span class="font-bold text-gray-700 text-sm">${e.title}</span>
+            <span class="text-[10px] font-black uppercase text-red-600">Pending</span>
+        </div>
+    `).join('');
+}
+
+function renderColleges(queryText, status) {
+    const container = document.getElementById('college-grid');
+    if(!container) return;
+    container.innerHTML = '';
+    const lowerQuery = (queryText || '').trim().toLowerCase(); 
+    const validElections = electionsDB.filter(e => e.college && typeof e.college === 'string');
+    const uniqueColleges = [...new Set(validElections.map(item => item.college))];
+
+    uniqueColleges.forEach(college => {
+        const matchingElections = validElections.filter(e => {
+            const effectiveStatus = getEffectiveStatus(e);
+            const titleMatches = (e.title || "").toLowerCase().includes(lowerQuery);
+            const statusMatches = status === 'all' || effectiveStatus === status;
+            return e.college === college && statusMatches && (titleMatches || college.toLowerCase().includes(lowerQuery));
+        });
+
+        if (matchingElections.length > 0) {
+            const collegeDiv = document.createElement('div');
+            collegeDiv.className = "space-y-3";
+            let html = `
+                <div class="bg-blue-gradient p-3 rounded-xl text-white text-[10px] font-bold uppercase tracking-wider shadow-sm">${college}</div>
+                <div class="grid grid-cols-3 text-[9px] font-black text-gray-400 uppercase px-3">
+                    <span>Election Title</span><span class="text-center">Status</span><span class="text-right">Action</span>
+                </div>
+                <div class="space-y-2">`;
+            html += matchingElections.map(e => {
+                const effectiveStatus = getEffectiveStatus(e);
+                let color = effectiveStatus === 'completed' ? 'text-gray-400' : (effectiveStatus === 'pending' ? 'text-red-500' : 'text-emerald-500');
+                return `
+                <div class="grid grid-cols-3 items-center bg-white p-3 rounded-xl border border-gray-100">
+                    <span class="text-xs font-bold text-gray-700 truncate pr-2">${e.title || 'Untitled'}</span>
+                    <div class="text-center"><span class="text-[9px] font-black uppercase ${color}">${effectiveStatus === 'completed' ? 'OFFICIAL' : effectiveStatus.toUpperCase()}</span></div>
+                    <div class="text-right"><button onclick="viewCandidates('${e.id}', '${college.replace(/'/g, "\\'")}', '${(e.title || 'Untitled').replace(/'/g, "\\")}')" class="text-[10px] font-black text-blue-500 hover:underline">VIEW CANDIDATES</button></div>
+                </div>`;
+            }).join('');
+            collegeDiv.innerHTML = html + `</div>`;
+            container.appendChild(collegeDiv);
+        }
+    });
+}
+
+window.viewCandidates = async (electionId, collegeName, electionTitle) => {
+    const modal = document.getElementById('candidatesModal');
+    const list = document.getElementById('candidatesList');
+    document.getElementById('modalCollegeName').innerText = collegeName;
+    document.getElementById('modalElectionTitle').innerText = electionTitle;
+    list.innerHTML = `<div class="text-center py-10"><i class="fas fa-spinner fa-spin text-blue-500 text-2xl"></i></div>`;
+    modal.classList.remove('hidden');
+
+    try {
+        const posSnap = await getDocs(query(collection(db, "positions"), where("electionId", "==", electionId), orderBy("createdAt", "asc")));
+        const candSnap = await getDocs(query(collection(db, "candidates"), where("electionId", "==", electionId)));
+        const orderedPositionNames = posSnap.docs.map(doc => doc.data().positionName);
+        const data = candSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        if (data.length === 0) {
+            list.innerHTML = `<p class="text-center text-gray-500 italic py-10">No candidates registered yet.</p>`;
+            return;
+        }
+
+        const grouped = data.reduce((acc, obj) => {
+            const posKey = obj.positionName || obj.position || "OTHER"; 
+            if (!acc[posKey]) acc[posKey] = [];
+            acc[posKey].push(obj);
+            return acc;
+        }, {});
+
+        list.innerHTML = orderedPositionNames.map(pos => {
+            const members = grouped[pos] || [];
+            if (members.length === 0) return ''; 
+            return `
+                <div class="mb-14 last:mb-0">
+                    <h5 class="text-center text-blue-500 font-black uppercase text-[10px] tracking-[0.25em] mb-10 flex items-center justify-center">
+                        <span class="h-px w-10 bg-blue-100 mr-4"></span>${pos}<span class="h-px w-10 bg-blue-100 ml-4"></span>
+                    </h5>
+                    <div class="flex flex-wrap justify-center gap-x-12 gap-y-10">
+                        ${members.map(m => `
+                            <div class="text-center w-32">
+                                <div class="w-24 h-24 rounded-full border-4 border-white ring-1 ring-gray-100 overflow-hidden mx-auto mb-4 shadow-md">
+                                    <img src="${m.photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="w-full h-full object-cover">
+                                </div>
+                                <p class="font-bold text-gray-800 text-sm leading-tight">${m.name || 'Anonymous'}</p>
+                            </div>`).join('')}
+                    </div>
+                </div>`;
+        }).join('');
+    } catch (err) { console.error(err); }
+};
+
+window.confirmLogout = async () => { await signOut(auth); window.location.href = "index.html"; };
+window.showLogoutModal = () => document.getElementById('logoutModalOverlay').classList.remove('hidden');
+window.closeLogoutModal = () => document.getElementById('logoutModalOverlay').classList.add('hidden');
+window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
+window.toggleFilterMenu = () => document.getElementById('filter-dropdown').classList.toggle('show');
+window.applyFilter = (status) => {
+    currentFilterStatus = status;
+    document.getElementById('filter-dropdown').classList.remove('show');
+    renderColleges(document.getElementById('search-input').value, status);
+};

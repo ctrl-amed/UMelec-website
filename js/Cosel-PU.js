@@ -1,3 +1,11 @@
+import { auth, db } from './firebase.js';
+import { 
+    EmailAuthProvider, 
+    reauthenticateWithCredential, 
+    updatePassword 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 const form = document.getElementById('updatePasswordForm');
 const oldInput = document.getElementById('oldPassword');
 const newInput = document.getElementById('newPassword');
@@ -5,8 +13,9 @@ const confirmInput = document.getElementById('confirmPassword');
 const submitBtn = document.getElementById('submitBtn');
 const validationBox = document.getElementById('newPasswordValidations');
 const matchText = document.getElementById('v-match');
-
-const CORRECT_OLD_PASSWORD = "cosel123";
+const errorToast = document.getElementById('errorToast');
+const dimOverlay = document.getElementById('dimOverlay');
+const successToast = document.getElementById('successToast');
 
 const checks = {
     length: (val) => val.length >= 8,
@@ -44,6 +53,8 @@ function checkAllValid() {
     }
 }
 
+// --- Event Listeners for UI ---
+
 newInput.addEventListener('focus', () => { validationBox.classList.remove('hidden'); });
 
 newInput.addEventListener('input', () => {
@@ -61,8 +72,6 @@ newInput.addEventListener('blur', () => {
     if (val === "" || isAllValid) { validationBox.classList.add('hidden'); }
 });
 
-confirmInput.addEventListener('focus', () => { if(confirmInput.value !== "") matchText.classList.remove('hidden'); });
-
 confirmInput.addEventListener('input', () => {
     matchText.classList.remove('hidden');
     const isMatch = confirmInput.value === newInput.value;
@@ -79,32 +88,70 @@ confirmInput.addEventListener('input', () => {
 
 oldInput.addEventListener('input', () => {
     oldInput.classList.remove('input-error');
-    document.getElementById('errorToast').classList.add('hidden');
+    errorToast.classList.add('hidden');
     checkAllValid();
 });
 
-form.addEventListener('submit', (e) => {
+// --- 🚀 REAL FIREBASE SUBMISSION ---
+
+form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (oldInput.value !== CORRECT_OLD_PASSWORD) {
-        document.getElementById('errorToast').classList.remove('hidden');
-        oldInput.classList.add('input-error');
-        
-        // REVISION FIX: Hide validations upon error reset
-        form.reset();
-        matchText.classList.add('hidden'); 
-        validationBox.classList.add('hidden');
-        
-        checkAllValid();
+    
+    const user = auth.currentUser;
+    if (!user) {
+        alert("Session expired. Please login again.");
+        window.location.href = "Leader-Login.html";
         return;
     }
 
-    document.getElementById('dimOverlay').classList.remove('hidden');
-    document.getElementById('successToast').classList.remove('hidden');
-    setTimeout(() => { window.location.href = "Cosel-Homepage.html"; }, 2000);
+    const oldPassword = oldInput.value;
+    const newPassword = newInput.value;
+
+    // UI Loading State
+    submitBtn.disabled = true;
+    submitBtn.innerText = "Updating...";
+
+    try {
+        // 1. Re-authenticate user to prove they know the old password
+        const credential = EmailAuthProvider.credential(user.email, oldPassword);
+        await reauthenticateWithCredential(user, credential);
+
+        // 2. Update the password in Firebase Auth
+        await updatePassword(user, newPassword);
+
+        // 3. (Optional) Update a flag in Firestore so they don't have to do this again
+        const userDocRef = doc(db, "users", user.uid);
+        await updateDoc(userDocRef, {
+            isPasswordUpdated: true
+        });
+
+        // 4. Show Success UI
+        dimOverlay.classList.remove('hidden');
+        successToast.classList.remove('hidden');
+        
+        setTimeout(() => { 
+            window.location.href = "Cosel-Homepage.html"; 
+        }, 2000);
+
+    } catch (error) {
+        console.error("Update Error:", error);
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Set New Password";
+        
+        // Error Handling
+        if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+            errorToast.querySelector('p').innerText = "Old password mismatch.";
+            errorToast.classList.remove('hidden');
+            oldInput.classList.add('input-error');
+        } else {
+            alert("Error: " + error.message);
+        }
+    }
 });
 
-document.querySelectorAll('.cursor-pointer').forEach((toggle, index) => {
-    toggle.addEventListener('click', function() {
+// Password Toggle logic
+document.querySelectorAll('.relative span svg').forEach((icon, index) => {
+    icon.parentElement.addEventListener('click', function() {
         const inputs = [oldInput, newInput, confirmInput];
         const type = inputs[index].getAttribute('type') === 'password' ? 'text' : 'password';
         inputs[index].setAttribute('type', type);
