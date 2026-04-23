@@ -1,4 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Authenticated User Data (Fake Data) ---
+    const authenticatedUser = {
+        name: "Maria Leonora Theresa",
+        college: "CCIS",
+        position: "Chairperson"
+    };
+
     // --- MOCK DATA ---
     const auditData = [
         { timestamp: '2025-11-01 08:30:00', admin: 'Chairman', action: 'System Login', details: 'Session Started' },
@@ -16,6 +23,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportAnalyticsBtn = document.getElementById('exportAnalyticsBtn');
     const directPdfBtns = document.querySelectorAll('.direct-pdf-btn');
     const exportAuditBtn = document.getElementById('exportAuditBtn');
+
+    // --- PROFILE INITIALIZATION ---
+    function displayProfile() {
+        const nameDisplay = document.getElementById('userName');
+        const roleDisplay = document.getElementById('userRole');
+        
+        if (nameDisplay && roleDisplay) {
+            nameDisplay.textContent = authenticatedUser.name;
+            roleDisplay.textContent = `${authenticatedUser.college} - ${authenticatedUser.position}`;
+        }
+    }
 
     // --- CORE FUNCTIONS ---
     function showToast() {
@@ -36,12 +54,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1500);
     }
 
+    // --- INITIALIZE ---
+    displayProfile();
+    renderTable(auditData);
+
     // --- EVENT LISTENERS ---
 
     // 1. Analytics Export -> Opens Modal
-    exportAnalyticsBtn.addEventListener('click', () => {
-        exportModal.classList.remove('hidden');
-    });
+    if(exportAnalyticsBtn) {
+        exportAnalyticsBtn.addEventListener('click', () => {
+            exportModal.classList.remove('hidden');
+        });
+    }
 
     // Modal Format Selection
     document.querySelectorAll('.export-opt').forEach(opt => {
@@ -60,9 +84,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 3. Audit Log Download
-    exportAuditBtn.addEventListener('click', () => {
-        processExport(exportAuditBtn, "CSV");
-    });
+    if(exportAuditBtn) {
+        exportAuditBtn.addEventListener('click', () => {
+            processExport(exportAuditBtn, "CSV");
+        });
+    }
 
     // --- VIEW DETAILS MODAL ---
     document.getElementById('viewAnalyticsBtn').onclick = () => analyticsModal.classList.remove('hidden');
@@ -71,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- AUDIT TABLE LOGIC ---
     function renderTable(data) {
+        if(!tableBody) return;
         tableBody.innerHTML = data.map(item => `
             <tr class="hover:bg-blue-50/50 transition">
                 <td class="px-6 py-4 text-sm text-gray-600">${item.timestamp}</td>
@@ -81,13 +108,14 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('') || `<tr><td colspan="4" class="px-6 py-10 text-center text-gray-400">No logs found.</td></tr>`;
     }
 
-    renderTable(auditData);
-
     // Filtering
     document.getElementById('applyFilterBtn').addEventListener('click', filterData);
     document.getElementById('auditSearch').addEventListener('input', filterData);
     document.getElementById('resetFilterBtn').onclick = () => {
-        ['auditSearch','dateFrom','timeFrom','dateTo','timeTo'].forEach(id => document.getElementById(id).value = '');
+        ['auditSearch','dateFrom','timeFrom','dateTo','timeTo'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.value = '';
+        });
         renderTable(auditData);
     };
 
@@ -103,7 +131,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- LOGOUT ---
     const logoutModal = document.getElementById('logoutModal');
-    document.getElementById('logoutBtn').onclick = () => logoutModal.classList.remove('hidden');
+    const sidebarLogoutBtn = document.getElementById('logoutBtn');
+    
+    if(sidebarLogoutBtn) {
+        sidebarLogoutBtn.onclick = () => logoutModal.classList.remove('hidden');
+    }
+    
     document.getElementById('closeLogout').onclick = () => logoutModal.classList.add('hidden');
     document.getElementById('confirmLogout').onclick = () => window.location.href = "index.html";
 });

@@ -28,11 +28,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentTab = 'Org';
     let editingId = null;
     let originalData = null;
-    let verificationFilter = 'all'; // 'all', 'Verified', 'Unverified'
+    let verificationFilter = 'all';
+
+    // LOGOUT FUNCTIONS
+    window.showLogoutModal = () => document.getElementById('logoutModalOverlay').classList.remove('hidden');
+    window.closeLogoutModal = () => document.getElementById('logoutModalOverlay').classList.add('hidden');
 
     window.switchTab = (tab) => {
         currentTab = tab;
-        verificationFilter = 'all'; // Reset filter on tab switch
+        verificationFilter = 'all';
         document.querySelectorAll('.status-tab').forEach(b => b.classList.remove('active'));
         document.getElementById(`tab-${tab}`).classList.add('active');
         
@@ -68,9 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    window.toggleFilter = () => {
-        document.getElementById('filterDropdown').classList.toggle('show');
-    };
+    window.toggleFilter = () => document.getElementById('filterDropdown').classList.toggle('show');
 
     window.setFilter = (type) => {
         verificationFilter = type;
@@ -126,10 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let filtered = voters.filter(v => 
                 v.name.toLowerCase().includes(query) || v.id.toLowerCase().includes(query) || v.college.toLowerCase().includes(query)
             );
-            
-            if (verificationFilter !== 'all') {
-                filtered = filtered.filter(v => v.verification === verificationFilter);
-            }
+            if (verificationFilter !== 'all') filtered = filtered.filter(v => v.verification === verificationFilter);
             renderTable(filtered);
         }
     };
@@ -256,11 +255,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
 
-    // Watchers
     document.querySelectorAll('#userModal input, #userModal select').forEach(el => el.addEventListener('input', validateOrgInputs));
     document.getElementById('v-status').addEventListener('change', validateVoterInput);
     
-    // Close dropdown on outside click
     window.addEventListener('click', (e) => {
         if (!e.target.closest('.relative')) document.getElementById('filterDropdown')?.classList.remove('show');
     });

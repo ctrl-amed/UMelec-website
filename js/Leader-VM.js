@@ -1,29 +1,46 @@
-// --- Data Source ---
+// --- Authenticated User Data (Fake Data) ---
+const authenticatedUser = {
+    name: "Maria Leonora Theresa",
+    college: "CCIS",
+    position: "Chairperson"
+};
+
+// --- Updated Data Source (Program and Year separated) ---
 let voters = [
-    { id: "A12345678", name: "Monde Garcia", college: "CBFS - 1st Year", date: "Nov. 20, 2025", status: "Pending", pdf: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
-    { id: "A13345678", name: "John Dela Cruz", college: "CCIS - 3rd Year", date: "Nov. 20, 2025", status: "Pending", pdf: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
-    { id: "B55667788", name: "Sarah Miller", college: "CCIS - 2nd Year", date: "Nov. 21, 2025", status: "Pending", pdf: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
-    { id: "C99001122", name: "Kevin Hart", college: "IOP - 4th Year", date: "Nov. 22, 2025", status: "Pending", pdf: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
-    { id: "A14345678", name: "Athisa Delmundo", college: "IAD - 2nd Year", date: "Nov. 20, 2025", status: "Approved", pdf: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
-    { id: "A14345679", name: "Lisa Mandalo", college: "IOP - 4th Year", date: "Nov. 20, 2025", status: "Approved", pdf: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
-    { id: "A14345680", name: "Joshua Lani", college: "CCSE - 3rd Year", date: "Nov. 20, 2025", status: "Rejected", reason: "Expired COR", pdf: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
-    { id: "A14345681", name: "Daryl Dixon", college: "CTHM - 3rd Year", date: "Nov. 20, 2025", status: "Rejected", reason: "Wrong Document", pdf: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" }
+    { id: "A12345678", name: "Monde Garcia", program: "BS Info Tech", year: "1st Year", date: "Nov. 20, 2025", status: "Pending", pdf: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
+    { id: "A13345678", name: "John Dela Cruz", program: "BS Computer Science", year: "3rd Year", date: "Nov. 20, 2025", status: "Pending", pdf: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
+    { id: "B55667788", name: "Sarah Miller", program: "BS Computer Science", year: "2nd Year", date: "Nov. 21, 2025", status: "Pending", pdf: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
+    { id: "C99001122", name: "Kevin Hart", program: "BS Psychology", year: "4th Year", date: "Nov. 22, 2025", status: "Pending", pdf: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
+    { id: "A14345678", name: "Athisa Delmundo", program: "BS Interior Design", year: "2nd Year", date: "Nov. 20, 2025", status: "Approved", pdf: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
+    { id: "A14345679", name: "Lisa Mandalo", program: "BS Psychology", year: "4th Year", date: "Nov. 20, 2025", status: "Approved", pdf: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
+    { id: "A14345680", name: "Joshua Lani", program: "BS Civil Eng", year: "3rd Year", date: "Nov. 20, 2025", status: "Rejected", reason: "Expired COR", pdf: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
+    { id: "A14345681", name: "Daryl Dixon", program: "BS Tourism Management", year: "3rd Year", date: "Nov. 20, 2025", status: "Rejected", reason: "Wrong Document", pdf: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" }
 ];
 
 let selectedVoter = null;
 let currentFilter = 'All';
 
 document.addEventListener('DOMContentLoaded', () => {
+    displayProfile();
     renderTable(voters); 
     setupEventListeners();
 });
 
+// --- Profile Initialization ---
+function displayProfile() {
+    const nameDisplay = document.getElementById('userName');
+    const roleDisplay = document.getElementById('userRole');
+    
+    if (nameDisplay && roleDisplay) {
+        nameDisplay.textContent = authenticatedUser.name;
+        roleDisplay.textContent = `${authenticatedUser.college} - ${authenticatedUser.position}`;
+    }
+}
+
 function setupEventListeners() {
-    // Search Filter
     const searchInput = document.getElementById('searchInput');
     if (searchInput) searchInput.addEventListener('input', applyFilters);
 
-    // Tab Filtering
     const tabButtons = document.querySelectorAll('.tab-btn');
     tabButtons.forEach(button => {
         button.addEventListener('click', (e) => {
@@ -33,7 +50,6 @@ function setupEventListeners() {
         });
     });
 
-    // Rejection Reason Checkboxes
     document.querySelectorAll('.rejection-check').forEach(ck => {
         ck.addEventListener('change', () => {
             const checkedCount = document.querySelectorAll('.rejection-check:checked').length;
@@ -46,14 +62,11 @@ function setupEventListeners() {
         });
     });
 
-    // Logout Trigger - Targeted via specific ID
     const logoutBtn = document.getElementById('logoutSidebarBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', openLogoutModal);
     }
 }
-
-// --- Navigation & Tabs ---
 
 function updateTabStyles(activeElement) {
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -71,15 +84,14 @@ function applyFilters() {
         const matchesSearch = (
             voter.name.toLowerCase().includes(searchTerm) || 
             voter.id.toLowerCase().includes(searchTerm) || 
-             voter.college.toLowerCase().includes(searchTerm)
+            voter.program.toLowerCase().includes(searchTerm)
         );
         return matchesStatus && matchesSearch;
     });
     renderTable(filtered);
 }
 
-// --- Table Rendering ---
-
+// --- Table Rendering (Updated with split columns) ---
 function renderTable(data) {
     const tableBody = document.getElementById('voterTableBody');
     if (!tableBody) return;
@@ -92,17 +104,18 @@ function renderTable(data) {
 
         const row = `
             <tr class="hover:bg-gray-50 transition border-b border-gray-50">
-                <td class="px-4 py-2 text-gray-600 text-sm whitespace-nowrap font-normal">${voter.id}</td>
-                <td class="px-4 py-2 text-gray-800 text-sm whitespace-nowrap font-normal">${voter.name}</td>
-                <td class="px-4 py-2 text-gray-600 text-sm whitespace-nowrap font-normal">${voter.college}</td>
-                <td class="px-4 py-2 text-gray-600 text-sm text-center whitespace-nowrap font-normal">${voter.date}</td>
-                <td class="px-4 py-2 text-center whitespace-nowrap">
+                <td class="px-4 py-3 text-gray-600 text-sm whitespace-nowrap font-normal">${voter.id}</td>
+                <td class="px-4 py-3 text-gray-800 text-sm whitespace-nowrap font-normal">${voter.name}</td>
+                <td class="px-4 py-3 text-gray-600 text-sm whitespace-nowrap font-normal">${voter.program}</td>
+                <td class="px-4 py-3 text-gray-600 text-sm text-center whitespace-nowrap font-normal">${voter.year}</td>
+                <td class="px-4 py-3 text-gray-600 text-sm text-center whitespace-nowrap font-normal">${voter.date}</td>
+                <td class="px-4 py-3 text-center whitespace-nowrap">
                     <span class="inline-flex items-center gap-1.5 font-normal text-black text-sm">
                         <span class="w-2 h-2 rounded-full ${dotColor}"></span>
                         ${voter.status}
                     </span>
                 </td>
-                <td class="px-4 py-2 text-center">
+                <td class="px-4 py-3 text-center">
                     <button onclick="openReview('${voter.id}')" class="bg-btn-gradient text-white px-4 py-1 rounded-lg text-xs font-medium shadow-md hover:brightness-110 transition">
                         Review
                     </button>
@@ -113,8 +126,6 @@ function renderTable(data) {
     });
 }
 
-// --- Modal Controls ---
-
 function openReview(id) {
     selectedVoter = voters.find(v => v.id === id);
     if (!selectedVoter) return;
@@ -122,17 +133,13 @@ function openReview(id) {
     const viewer = document.getElementById('pdfViewer');
     if (viewer) viewer.src = selectedVoter.pdf;
     
-    const parts = selectedVoter.college.split(' - ');
-    const college = parts[0] || 'N/A';
-    const year = parts[1] || 'N/A';
-
     let infoHtml = `
         <h4 class="text-lg font-bold text-gray-800 mb-6 font-sans">Student Provided Information</h4>
         <div class="space-y-4 text-gray-600 font-normal text-sm">
             <p>Name: ${selectedVoter.name}</p>
             <p>Student ID: ${selectedVoter.id}</p>
-            <p>College: ${college}</p>
-            <p>Year: ${year}</p>
+            <p>Program: ${selectedVoter.program}</p>
+            <p>Year: ${selectedVoter.year}</p>
         </div>`;
 
     if (selectedVoter.status === 'Approved') {
@@ -175,8 +182,6 @@ function closeApproveAlert() { document.getElementById('approveAlert').classList
 
 function openLogoutModal() { document.getElementById('logoutModal').classList.remove('hidden'); }
 function closeLogoutModal() { document.getElementById('logoutModal').classList.add('hidden'); }
-
-// --- Final Actions ---
 
 function confirmLogout() {
     window.location.href = "index.html";

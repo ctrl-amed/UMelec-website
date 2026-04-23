@@ -1,4 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Authenticated User Data (Fake Data) ---
+    const authenticatedUser = {
+        name: "Maria Leonora Theresa",
+        college: "CCIS",
+        position: "Chairperson"
+    };
+
     // --- Mock Database Data ---
     const electionData = {
         name: "CCIS Student Council Election",
@@ -36,8 +43,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const successToast = document.getElementById('successToast');
     let toastTimer;
 
+    // --- Profile Initialization ---
+    function displayProfile() {
+        const nameDisplay = document.getElementById('userName');
+        const roleDisplay = document.getElementById('userRole');
+        
+        if (nameDisplay && roleDisplay) {
+            nameDisplay.textContent = authenticatedUser.name;
+            roleDisplay.textContent = `${authenticatedUser.college} - ${authenticatedUser.position}`;
+        }
+    }
+
     // --- Render Tallies ---
     function renderTallies() {
+        if (!container) return;
         container.innerHTML = electionData.positions.map(pos => `
             <div class="bg-gray-50 rounded-2xl overflow-hidden shadow-sm border border-gray-100">
                 <div class="card-header-gradient px-6 py-4 text-white font-bold text-lg">
@@ -70,6 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
 
+    // --- Initialize ---
+    displayProfile();
     renderTallies();
 
     // --- Approval Workflow ---
@@ -105,7 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function updateToOfficial() {
-        if (approveBtn) approveBtn.remove();
+        const currentApproveBtn = document.getElementById('approveResultsBtn');
+        if (currentApproveBtn) currentApproveBtn.remove();
         document.getElementById('tallyHeader').innerHTML = `Official Election Results - ${electionData.name}`;
         document.getElementById('tallySubtext').innerText = "Results have been verified";
         
@@ -117,7 +139,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Logout ---
     const logoutModal = document.getElementById('logoutModal');
-    document.getElementById('logoutSidebarBtn').addEventListener('click', () => logoutModal.classList.remove('hidden'));
+    const sidebarLogoutBtn = document.getElementById('logoutSidebarBtn');
+    
+    if (sidebarLogoutBtn) {
+        sidebarLogoutBtn.addEventListener('click', () => logoutModal.classList.remove('hidden'));
+    }
+    
     document.getElementById('closeLogout').addEventListener('click', () => logoutModal.classList.add('hidden'));
     document.getElementById('confirmLogout').addEventListener('click', () => window.location.href = "index.html");
 });

@@ -1,4 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Authenticated User Data (Reference from RandD) ---
+    const authenticatedUser = {
+        name: "Maria Leonora Theresa",
+        college: "CCIS",
+        position: "Chairperson"
+    };
+
     // 1. Mock Election Data
     const archiveData = [
         { id: 1, title: 'CCIS Student Council Elections 2025', start: '2025-11-18', end: '2025-11-18' },
@@ -43,6 +50,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportPrompt = document.getElementById('exportPrompt');
     const toastOverlay = document.getElementById('toastOverlay');
     const successToast = document.getElementById('successToast');
+    const logoutModal = document.getElementById('logoutModal');
+    const sidebarLogoutBtn = document.getElementById('logoutBtn');
+
+    // --- PROFILE INITIALIZATION (Reference from RandD) ---
+    function displayProfile() {
+        const nameDisplay = document.getElementById('userName');
+        const roleDisplay = document.getElementById('userRole');
+        
+        if (nameDisplay && roleDisplay) {
+            nameDisplay.textContent = authenticatedUser.name;
+            roleDisplay.textContent = `${authenticatedUser.college} - ${authenticatedUser.position}`;
+        }
+    }
 
     function renderTable() {
         tableBody.innerHTML = archiveData.map(election => `
@@ -144,7 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
         toastOverlay.classList.remove('hidden');
         successToast.classList.add('toast-animate-center');
         
-        // Auto-hide after 3 seconds (duration of animation)
         setTimeout(() => {
             closeToast();
         }, 3000);
@@ -157,5 +176,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('closeModal').onclick = () => viewModal.classList.add('hidden');
     
+    // --- LOGOUT LOGIC (Reference from RandD) ---
+    if(sidebarLogoutBtn) {
+        sidebarLogoutBtn.onclick = () => logoutModal.classList.remove('hidden');
+    }
+    
+    document.getElementById('closeLogout').onclick = () => logoutModal.classList.add('hidden');
+    document.getElementById('confirmLogout').onclick = () => window.location.href = "index.html";
+
+    // --- INITIALIZE ---
+    displayProfile();
     renderTable();
 });

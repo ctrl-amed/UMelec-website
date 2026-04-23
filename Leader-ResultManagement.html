@@ -7,15 +7,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Revisions: Gradients light top to dark bottom */
         .bg-sidebar-gradient { background: linear-gradient(to bottom, #0098E0, #00537A); }
         .bg-btn-gradient { background: linear-gradient(to bottom, #0098E0, #00537A); }
         .bg-nav-active, .hover-nav:hover { background: linear-gradient(to bottom, #F5A304, #8F5F02) !important; color: white !important; }
         .card-header-gradient { background: linear-gradient(to bottom, #0098E0, #00537A); }
-        
         .modal-overlay { background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
-        
-        /* Toast Animation */
         @keyframes centerFadeInOut {
             0% { opacity: 0; transform: translate(-50%, -60%); }
             15% { opacity: 1; transform: translate(-50%, -50%); }
@@ -49,7 +45,14 @@
                 </a>
             </nav>
 
-            <button id="logoutSidebarBtn" class="mt-4 lg:mt-0 w-full py-2 lg:py-3 rounded-xl bg-btn-gradient border border-white/20 shadow-lg font-semibold hover:brightness-110 transition text-sm text-white">
+            <div class="mt-auto pt-6 border-t border-white/20 mb-4 px-2">
+                <div class="flex flex-col text-left">
+                    <span id="userName" class="font-bold text-sm lg:text-base tracking-wide">...</span>
+                    <span id="userRole" class="text-xs lg:text-sm text-white/70 font-medium italic">...</span>
+                </div>
+            </div>
+
+            <button id="logoutSidebarBtn" class="w-full py-2 lg:py-3 rounded-xl bg-btn-gradient border border-white/20 shadow-lg font-semibold hover:brightness-110 transition text-sm text-white">
                 Logout
             </button>
         </aside>
