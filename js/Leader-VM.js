@@ -5,7 +5,7 @@ const authenticatedUser = {
     position: "Chairperson"
 };
 
-// --- Updated Data Source (Program and Year separated) ---
+// --- Data Source (Program and Year separated) ---
 let voters = [
     { id: "A12345678", name: "Monde Garcia", program: "BS Info Tech", year: "1st Year", date: "Nov. 20, 2025", status: "Pending", pdf: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
     { id: "A13345678", name: "John Dela Cruz", program: "BS Computer Science", year: "3rd Year", date: "Nov. 20, 2025", status: "Pending", pdf: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
@@ -22,8 +22,9 @@ let currentFilter = 'All';
 
 document.addEventListener('DOMContentLoaded', () => {
     displayProfile();
-    renderTable(voters); 
     setupEventListeners();
+    handleIncomingFilters(); // New: Handles "View All" redirection from Homepage
+    renderTable(voters); 
 });
 
 // --- Profile Initialization ---
@@ -34,6 +35,22 @@ function displayProfile() {
     if (nameDisplay && roleDisplay) {
         nameDisplay.textContent = authenticatedUser.name;
         roleDisplay.textContent = `${authenticatedUser.college} - ${authenticatedUser.position}`;
+    }
+}
+
+// --- URL Parameter Handling (For Homepage "View All" buttons) ---
+function handleIncomingFilters() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const filterParam = urlParams.get('filter'); // Looks for ?filter=Pending or ?filter=Approved
+    
+    if (filterParam) {
+        currentFilter = filterParam;
+        // Update the UI tabs to show which is active
+        const targetTab = document.querySelector(`[data-status="${filterParam}"]`);
+        if (targetTab) {
+            updateTabStyles(targetTab);
+        }
+        applyFilters();
     }
 }
 
@@ -61,11 +78,6 @@ function setupEventListeners() {
             }
         });
     });
-
-    const logoutBtn = document.getElementById('logoutSidebarBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', openLogoutModal);
-    }
 }
 
 function updateTabStyles(activeElement) {
@@ -91,7 +103,7 @@ function applyFilters() {
     renderTable(filtered);
 }
 
-// --- Table Rendering (Updated with split columns) ---
+// --- Table Rendering (Updated with separate Program and Year columns) ---
 function renderTable(data) {
     const tableBody = document.getElementById('voterTableBody');
     if (!tableBody) return;
@@ -136,18 +148,18 @@ function openReview(id) {
     let infoHtml = `
         <h4 class="text-lg font-bold text-gray-800 mb-6 font-sans">Student Provided Information</h4>
         <div class="space-y-4 text-gray-600 font-normal text-sm">
-            <p>Name: ${selectedVoter.name}</p>
-            <p>Student ID: ${selectedVoter.id}</p>
-            <p>Program: ${selectedVoter.program}</p>
-            <p>Year: ${selectedVoter.year}</p>
+            <p><strong class="font-semibold text-gray-700">Name:</strong> ${selectedVoter.name}</p>
+            <p><strong class="font-semibold text-gray-700">Student ID:</strong> ${selectedVoter.id}</p>
+            <p><strong class="font-semibold text-gray-700">Program:</strong> ${selectedVoter.program}</p>
+            <p><strong class="font-semibold text-gray-700">Year Level:</strong> ${selectedVoter.year}</p>
         </div>`;
 
     if (selectedVoter.status === 'Approved') {
-        infoHtml += `<div class="mt-4 text-gray-600 text-sm font-normal"><p>Status: Approved</p></div>`;
+        infoHtml += `<div class="mt-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm font-medium border border-green-100">Status: Approved</div>`;
     } else if (selectedVoter.status === 'Rejected') {
-        infoHtml += `<div class="mt-4 space-y-2 text-gray-600 text-sm font-normal">
+        infoHtml += `<div class="mt-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm font-medium border border-red-100">
                         <p>Status: Rejected</p>
-                        <p class="ml-4">Reason: ${selectedVoter.reason || 'Not specified'}</p>
+                        <p class="mt-1 font-normal italic">Reason: ${selectedVoter.reason || 'Not specified'}</p>
                      </div>`;
     }
 
@@ -166,6 +178,7 @@ function closeReviewModal() {
     if (viewer) viewer.src = "";
 }
 
+// --- Modal Handlers ---
 function openRejectModal() { document.getElementById('rejectModal').classList.remove('hidden'); }
 function closeRejectModal() { 
     document.getElementById('rejectModal').classList.add('hidden');
@@ -183,6 +196,7 @@ function closeApproveAlert() { document.getElementById('approveAlert').classList
 function openLogoutModal() { document.getElementById('logoutModal').classList.remove('hidden'); }
 function closeLogoutModal() { document.getElementById('logoutModal').classList.add('hidden'); }
 
+// --- Actions ---
 function confirmLogout() {
     window.location.href = "index.html";
 }
