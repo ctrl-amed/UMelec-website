@@ -787,6 +787,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('downloadModal').classList.remove('hidden');
     };
 
+    window.confirmLogout = async () => { await signOut(auth); window.location.href = "index.html"; };
+    window.showLogoutModal = () => document.getElementById('logoutModalOverlay').classList.remove('hidden');
+    window.closeLogoutModal = () => document.getElementById('logoutModalOverlay').classList.add('hidden');
+
     window.closeModal = (id) => {
         const modal = document.getElementById(id);
         if (modal) modal.classList.add('hidden');
