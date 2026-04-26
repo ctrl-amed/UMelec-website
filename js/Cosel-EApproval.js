@@ -333,6 +333,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    window.confirmLogout = async () => { await signOut(auth); window.location.href = "index.html"; };
+    window.showLogoutModal = () => document.getElementById('logoutModalOverlay').classList.remove('hidden');
+    window.closeLogoutModal = () => document.getElementById('logoutModalOverlay').classList.add('hidden');
+
     window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
 
     window.showToast = (title, msg, color, icon) => {

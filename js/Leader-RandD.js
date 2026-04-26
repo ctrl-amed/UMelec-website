@@ -48,22 +48,44 @@ document.addEventListener('DOMContentLoaded', () => {
     showInitialTableLoading();
 
     // --- 1. AUTH & DATA INITIALIZATION ---
+// --- 1. AUTH & DATA INITIALIZATION ---
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             try {
                 const userDoc = await getDoc(doc(db, "users", user.uid));
+                
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
+                    
+                    // 1. Assign global state variables
                     leaderCollege = userData.college;
                     leaderRole = userData.role;
+
+                    // 2. Set currentLeaderData (Fixing the data vs userData reference)
+                    const currentLeaderData = {
+                        name: `${userData.firstname || ''} ${userData.lastname || ''}`.trim() || user.email,
+                        college: userData.college,
+                        role: userData.role || "LEADER"
+                    };
+
+                    // 3. Update UI Profile Display
+                    const nameDisplay = document.getElementById('userName');
+                    const roleDisplay = document.getElementById('userRole');
                     
+                    if (nameDisplay) nameDisplay.textContent = currentLeaderData.name;
+                    if (roleDisplay) roleDisplay.textContent = `${currentLeaderData.college} - ${currentLeaderData.role}`;
+
+                    // 4. Initialize Data Fetching
                     setupAuditListener();
                     loadVoterAnalytics(); 
+                } else {
+                    console.error("No user document found in Firestore.");
                 }
             } catch (err) {
                 console.error("Auth initialization error:", err);
             }
         } else {
+            // User is signed out
             window.location.href = "index.html";
         }
     });

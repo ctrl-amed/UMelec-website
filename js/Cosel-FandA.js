@@ -380,6 +380,10 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => document.getElementById('toast-overlay')?.classList.add('hidden'), 300);
     };
 
+    window.confirmLogout = async () => { await signOut(auth); window.location.href = "index.html"; };
+    window.showLogoutModal = () => document.getElementById('logoutModalOverlay').classList.remove('hidden');
+    window.closeLogoutModal = () => document.getElementById('logoutModalOverlay').classList.add('hidden');
+
     window.closeAlert = () => document.getElementById('alertDialog').classList.add('hidden');
     window.discardAndClose = (type) => { closeAlert(); closeModal(`${type}Modal`); };
     window.handleCancel = (type) => {

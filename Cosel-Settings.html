@@ -25,7 +25,7 @@
                     <i id="toast-icon" class="fas fa-check"></i>
                 </div>
             </div>
-            <h3 id="toast-title" class="text-xl font-black text-black mb-2">Success</h3>
+            <h3 id="toast-title" class="text-xl font-black text-black mb-2"></h3>
             <p id="toast-msg" class="text-black font-medium text-sm"></p>
         </div>
     </div>
@@ -42,7 +42,6 @@
 
     <div id="backupModal" class="fixed inset-0 z-[500] hidden flex items-center justify-center p-4 modal-overlay" onclick="closeBackupModal()">
         <div class="bg-white rounded-[40px] p-10 max-w-sm w-full text-center shadow-2xl relative" onclick="event.stopPropagation()">
-            
             <div id="backup-step-1">
                 <h3 class="text-xl font-black text-black mb-2 uppercase">Start manual backup?</h3>
                 <p class="text-black font-medium mb-8">This will secure all current data.</p>
@@ -51,7 +50,6 @@
                     <button onclick="startBackupProcess()" class="flex-1 py-3 bg-blue-gradient text-white rounded-full font-bold shadow-lg">Confirm</button>
                 </div>
             </div>
-
             <div id="backup-step-2" class="hidden py-6">
                 <div class="flex justify-center mb-6">
                     <div class="w-16 h-16 border-4 border-blue-100 border-t-blue-500 rounded-full animate-spin-custom"></div>
@@ -69,15 +67,42 @@
                 <h1 class="text-sm font-bold leading-tight uppercase tracking-wide text-white">Commission on <br> Student Election</h1>
             </div>
             <nav class="flex flex-col gap-2 flex-1">
-                <a href="Cosel-Homepage.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white"><i class="fas fa-home text-sm"></i> <span class="font-medium">Homepage</span></a>
-                <a href="Cosel-ElectionMonitoring.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white"><i class="fas fa-chart-line text-sm"></i> <span class="font-medium">Election Monitoring</span></a>
-                <a href="Cosel-ElectionApproval.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white"><i class="fas fa-check-circle text-sm"></i> <span class="font-medium">Election Approval</span></a>
-                <a href="Cosel-UserManagement.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white"><i class="fas fa-users-cog text-sm"></i> <span class="font-medium">User Management</span></a>
-                <a href="Cosel-ATMonitoring.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white"><i class="fas fa-history text-sm"></i> <span class="font-medium">Audit Trail Monitoring</span></a>
-                <a href="Cosel-FandA.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white"><i class="fas fa-bullhorn text-sm"></i> <span class="font-medium">FAQs & Announcements</span></a>
-                <a href="Cosel-Settings.html" class="flex items-center gap-3 p-3 rounded-lg bg-nav-active shadow-md transition text-white"><i class="fas fa-cog text-sm"></i> <span class="font-medium">Settings</span></a>
+                <a href="Cosel-Homepage.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80 hover:text-white">
+                    <i class="fas fa-home text-sm"></i> 
+                    <span class="font-medium">Homepage</span>
+                </a>
+                <a href="Cosel-ElectionMonitoring.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80 hover:text-white">
+                    <i class="fas fa-chart-line text-sm"></i> 
+                    <span class="font-medium">Election Monitoring</span>
+                </a>
+                <a href="Cosel-ElectionApproval.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80 hover:text-white">
+                    <i class="fas fa-check-circle text-sm"></i> 
+                    <span class="font-medium">Election Approval</span>
+                </a>
+                <a href="Cosel-UserManagement.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80 hover:text-white">
+                    <i class="fas fa-users-cog text-sm"></i> 
+                    <span class="font-medium">User Management</span>
+                </a>
+                <a href="Cosel-ATMonitoring.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80 hover:text-white">
+                    <i class="fas fa-history text-sm"></i> 
+                    <span class="font-medium">Audit Trail Monitoring</span>
+                </a>
+                <a href="Cosel-FandA.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80 hover:text-white">
+                    <i class="fas fa-bullhorn text-sm"></i> 
+                    <span class="font-medium">FAQs & Announcements</span>
+                </a>
+                <a href="Cosel-Settings.html" class="flex items-center gap-3 p-3 rounded-lg bg-nav-active shadow-md transition text-white">
+                    <i class="fas fa-cog text-sm"></i> 
+                    <span class="font-medium">Settings</span>
+                </a>
             </nav>
-            <button onclick="showLogoutModal()" class="mt-8 w-full py-3 rounded-xl bg-blue-gradient border border-white/20 shadow-lg font-semibold hover:brightness-110 transition text-sm text-white text-white">Logout</button>
+            <div class="mt-auto pt-6 border-t border-white/20 mb-4 px-2">
+                <div class="flex flex-col text-left">
+                    <span class="font-bold text-sm lg:text-base tracking-wide uppercase">COSEL</span>
+                    <span class="text-xs lg:text-sm text-white/70 font-medium italic">Chairperson</span>
+                </div>
+            </div>
+            <button onclick="showLogoutModal()" class="w-full py-3 rounded-xl bg-blue-gradient border border-white/20 shadow-lg font-semibold hover:brightness-110 transition text-sm">Logout</button>
         </aside>
 
         <main class="flex-1 p-4 lg:p-8">
@@ -87,33 +112,43 @@
             </header>
 
             <div class="max-w-4xl space-y-12">
-                <section>
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <h3 class="text-xl font-black text-black uppercase tracking-tight">Automated Archiving Policy</h3>
-                    </div>
+<section>
+    <div class="flex items-center gap-3 mb-6">
+        <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl">
+            <i class="fas fa-clock"></i>
+        </div>
+        <h3 class="text-xl font-black text-black uppercase tracking-tight">Automated Archiving Policy</h3>
+    </div>
 
-                    <div class="bg-white p-8 rounded-[32px] border border-gray-200 shadow-sm">
-                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                            <div class="space-y-1">
-                                <p class="text-[10px] font-black uppercase text-black mb-1 ml-1">Archive Frequency</p>
-                                <div class="flex items-center gap-4">
-                                    <select id="archive-frequency" onchange="handleFrequencyChange(this.value)" class="bg-gray-50 border border-gray-200 p-4 rounded-2xl font-black text-sm outline-none focus:ring-2 focus:ring-blue-400 min-w-[280px]">
-                                        <option value="Every Academic Year">Every Academic Year</option>
-                                        <option value="30 Days after Finalization">30 Days after Finalization</option>
-                                    </select>
-                                    
-                                    <div class="relative inline-block w-14 h-8 align-middle select-none transition duration-200 ease-in">
-                                        <input type="checkbox" name="toggle" id="toggle" checked class="toggle-checkbox absolute block w-8 h-8 rounded-full bg-white border-4 appearance-none cursor-pointer outline-none transition-all duration-300 right-6"/>
-                                        <label for="toggle" class="toggle-label block overflow-hidden h-8 rounded-full bg-gray-300 cursor-pointer transition-all duration-300"></label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+    <div class="bg-white p-8 md:p-10 rounded-[32px] border border-gray-200 shadow-sm">
+        <div class="flex flex-col md:flex-row gap-10">
+            <div class="flex-1 flex flex-col gap-4">
+                <p class="text-[10px] font-black uppercase text-black mb-1 tracking-widest ml-1">Archive Frequency</p>
+                <select id="archive-frequency" 
+                        onchange="handleFrequencyChange(this.value)" 
+                        class="bg-gray-50 border border-gray-200 p-4 rounded-2xl font-black text-sm outline-none focus:ring-2 focus:ring-blue-400 w-full max-w-[320px]">
+                    <option value="Every Academic Year">Every Academic Year</option>
+                    <option value="30 Days after Finalization">30 Days after Finalization</option>
+                </select>
+                <p class="text-xs font-medium text-black/60 leading-relaxed max-w-[300px]">
+                    Automatically move old election data to a secure archive once results are finalized and certified.
+                </p>
+            </div>
+
+            <div class="flex-1 flex flex-col gap-4 justify-center">
+                <div class="relative inline-block w-14 h-8 align-middle select-none transition duration-200 ease-in">
+                    <input type="checkbox" name="toggle" id="toggle" checked 
+                           onchange="handlePolicyToggle(this.checked)"
+                           class="toggle-checkbox absolute block w-8 h-8 rounded-full bg-white border-4 appearance-none cursor-pointer outline-none transition-all duration-300 right-0"/>
+                    <label for="toggle" class="toggle-label block overflow-hidden h-8 rounded-full bg-gray-300 cursor-pointer transition-all duration-300"></label>
+                </div>
+                <p class="text-xs font-medium text-black/60 leading-relaxed max-w-[320px]">
+                    Permanently delete unneeded voter session data after archiving to maintain ballot secrecy.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
 
                 <hr class="border-gray-200">
 

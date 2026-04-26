@@ -1,7 +1,7 @@
 import { db } from './firebase.js';
 import { 
     collection, addDoc, updateDoc, doc, deleteDoc, 
-    onSnapshot, query, where, serverTimestamp 
+    onSnapshot, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // 1. College Lists & Mappings
@@ -29,6 +29,7 @@ const collegeMap = {
     "College of Business and Financial Science (CBFS)": "CBFS",
     "College of Governance and Public Policy (CGPP)": "CGPP",
     "College of Computing and Information Sciences (CCIS)": "CCIS",
+    "College of Computing and Information Science (CCIS)": "CCIS",
     "College of Construction Sciences and Engineering (CCSE)": "CCSE",
     "Institute of Arts and Design (IAD)": "IAD",
     "Institute of Nursing (ION)": "ION",
@@ -48,11 +49,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let editingId = null;
     let originalData = null;
     let verificationFilter = 'all';
-    let isInitialLoad = true; // NEW: Track first load
+    let isInitialLoad = true;
 
-    // --- NEW: Loading UI Helper ---
+    // --- LOADING STATE ---
     function renderLoadingState() {
         const body = document.getElementById('user-table-body');
+        if(!body) return;
         body.innerHTML = `
             <tr>
                 <td colspan="6" class="px-6 py-20 text-center">
@@ -66,10 +68,9 @@ document.addEventListener('DOMContentLoaded', () => {
             </tr>`;
     }
 
-    // --- REAL-TIME SYNC ---
+    // --- REAL-TIME FIREBASE SYNC ---
     function syncUserDatabase() {
-        renderLoadingState(); // Show loader immediately
-        
+        renderLoadingState();
         onSnapshot(collection(db, "users"), (snapshot) => {
             const allUsers = snapshot.docs.map(doc => {
                 const data = doc.data();
@@ -95,12 +96,12 @@ document.addEventListener('DOMContentLoaded', () => {
             orgUsers = allUsers.filter(u => u.role === "LEADER");
             voters = allUsers.filter(u => u.role !== "LEADER");
             
-            isInitialLoad = false; // Data has arrived
+            isInitialLoad = false;
             renderTable();
         });
     }
 
-    // --- TAB & HEADER LOGIC ---
+    // --- TAB LOGIC ---
     window.switchTab = (tab) => {
         currentTab = tab;
         verificationFilter = 'all';
@@ -162,8 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <button onclick="openOrgModal('${u.id}')" class="text-blue-500 mr-4 hover:scale-110 transition"><i class="fas fa-edit"></i></button>
                         <button onclick="confirmDelete('${u.id}')" class="text-red-400 hover:scale-110 transition"><i class="fas fa-trash"></i></button>
                     </td>
-                </tr>
-            `).join('');
+                </tr>`).join('');
         } else {
             head.innerHTML = `<tr><th class="px-6 py-5">Student ID</th><th class="px-6 py-5">Name</th><th class="px-6 py-5">College</th><th class="px-6 py-5">Verification</th><th class="px-6 py-5">Status</th><th class="px-6 py-5 text-center">Action</th></tr>`;
             const data = filteredData || voters;
@@ -177,76 +177,53 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td class="px-6 py-5 text-center">
                         <button onclick="openVoterModal('${v.id}')" class="text-blue-500 hover:scale-110 transition"><i class="fas fa-edit"></i></button>
                     </td>
-                </tr>
-            `).join('');
+                </tr>`).join('');
         }
     };
 
-    // --- FORM VALIDATION ---
-    window.validateOrgInputs = () => {
-        const inputs = getCurrentOrgInputs();
-        const btn = document.getElementById('submitUserBtn');
-        const allFilled = inputs.f && inputs.l && inputs.e && inputs.c;
-        let shouldEnable = editingId ? (allFilled && JSON.stringify(inputs) !== originalData) : allFilled;
+    // --- VOTER MODAL LOGIC ---
+    window.openVoterModal = (id) => {
+        const voter = voters.find(v => v.id === id);
+        if (!voter) return;
+
+        editingId = id;
+        document.getElementById('v-id').innerText = voter.studentId;
+        document.getElementById('v-name').innerText = voter.name;
+        document.getElementById('v-college').innerText = voter.college;
+        document.getElementById('v-verify').innerText = voter.verification;
+        document.getElementById('v-status').value = voter.status;
         
-        btn.disabled = !shouldEnable;
-        btn.classList.toggle('opacity-50', !shouldEnable);
-        btn.classList.toggle('cursor-not-allowed', !shouldEnable);
+        originalData = voter.status;
+        document.getElementById('voterModal').classList.remove('hidden');
+        validateVoterInput();
     };
 
-    function getCurrentOrgInputs() {
-        return {
-            f: document.getElementById('f-name').value.trim(),
-            l: document.getElementById('l-name').value.trim(),
-            e: document.getElementById('email').value.trim(),
-            c: document.getElementById('college').value,
-            s: document.getElementById('status').value
-        };
-    }
+    window.validateVoterInput = () => {
+        const hasChanged = document.getElementById('v-status').value !== originalData;
+        const btn = document.getElementById('voterSaveBtn');
+        btn.disabled = !hasChanged;
+        btn.classList.toggle('opacity-50', !hasChanged);
+        btn.classList.toggle('cursor-not-allowed', !hasChanged);
+    };
 
-    // --- SAVE / UPDATE LOGIC ---
-    window.saveUser = async () => {
-        const inputs = getCurrentOrgInputs();
-        const collegeShort = inputs.c.match(/\(([^)]+)\)/)?.[1] || inputs.c;
-        const btn = document.getElementById('submitUserBtn');
-        
-        // Show loading in button
-        const originalBtnText = btn.innerText;
-        btn.innerText = "Processing...";
+    window.saveVoterStatus = async () => {
+        const btn = document.getElementById('voterSaveBtn');
+        const newStatus = document.getElementById('v-status').value;
+        btn.innerText = "Updating...";
         btn.disabled = true;
 
         try {
-            if (editingId) {
-                await updateDoc(doc(db, "users", editingId), {
-                    firstName: inputs.f,
-                    lastName: inputs.l,
-                    college: collegeShort,
-                    status: inputs.s
-                });
-                showToast("Success", "User updated successfully");
-            } else {
-                await addDoc(collection(db, "users"), {
-                    firstName: inputs.f,
-                    lastName: inputs.l,
-                    email: inputs.e,
-                    college: collegeShort,
-                    status: inputs.s,
-                    role: "LEADER",
-                    createdAt: serverTimestamp()
-                });
-                showToast("Success", "Leader registered successfully", `Invite sent to ${inputs.e}`);
-            }
-            closeModal('userModal');
+            await updateDoc(doc(db, "users", editingId), { status: newStatus });
+            showToast("Success", "Voter status updated");
+            closeModal('voterModal');
         } catch (err) {
-            console.error(err);
-            showToast("Error", "Failed to save user", null, "fa-times", "bg-red-500");
+            showToast("Error", "Failed to update voter", null, "fa-times", "bg-red-500");
         } finally {
-            btn.innerText = originalBtnText;
-            btn.disabled = false;
+            btn.innerText = "Save Changes";
         }
     };
 
-    // --- MODAL CONTROLS ---
+    // --- LEADER MODAL LOGIC ---
     window.openOrgModal = (id = null) => {
         editingId = id;
         const modal = document.getElementById('userModal');
@@ -277,13 +254,92 @@ document.addEventListener('DOMContentLoaded', () => {
         validateOrgInputs();
     };
 
-    // --- WATCHERS & INITIALIZATION ---
-    document.querySelectorAll('#userModal input, #userModal select').forEach(el => {
-        el.addEventListener('input', validateOrgInputs);
-    });
+    window.saveUser = async () => {
+        const inputs = getCurrentOrgInputs();
+        const collegeShort = inputs.c.match(/\(([^)]+)\)/)?.[1] || inputs.c;
+        const btn = document.getElementById('submitUserBtn');
+        btn.innerText = "Processing...";
+        btn.disabled = true;
+
+        try {
+            if (editingId) {
+                await updateDoc(doc(db, "users", editingId), {
+                    firstName: inputs.f, lastName: inputs.l, college: collegeShort, status: inputs.s
+                });
+                showToast("Success", "User updated successfully");
+            } else {
+                await addDoc(collection(db, "users"), {
+                    firstName: inputs.f, lastName: inputs.l, email: inputs.e, college: collegeShort,
+                    status: inputs.s, role: "LEADER", createdAt: serverTimestamp()
+                });
+                showToast("Success", "Leader registered successfully");
+            }
+            closeModal('userModal');
+        } catch (err) {
+            showToast("Error", "Failed to save user", null, "fa-times", "bg-red-500");
+        } finally {
+            btn.innerText = editingId ? "Save Changes" : "Create User";
+        }
+    };
+
+    // --- DELETE LOGIC ---
+    window.confirmDelete = (id) => {
+        const user = orgUsers.find(u => u.id === id);
+        if(!user) return;
+        document.getElementById('delete-msg').innerText = `Are you sure you want to remove ${user.firstName}?`;
+        document.getElementById('confirmDeleteBtn').onclick = async () => {
+            try {
+                await deleteDoc(doc(db, "users", id));
+                closeModal('deleteModal');
+                showToast("Deleted", "User removed", null, "fa-trash", "bg-red-500");
+            } catch (err) {
+                showToast("Error", "Delete failed");
+            }
+        };
+        document.getElementById('deleteModal').classList.remove('hidden');
+    };
+
+    // --- UTILS ---
+    window.toggleFilter = () => document.getElementById('filterDropdown').classList.toggle('show');
+    window.setFilter = (type) => {
+        verificationFilter = type;
+        document.getElementById('filterDropdown').classList.remove('show');
+        handleSearch(document.getElementById('user-search').value);
+    };
+
+    window.handleSearch = (val) => {
+        const queryText = val.toLowerCase();
+        if (currentTab === 'Org') {
+            const filtered = orgUsers.filter(u => u.name.toLowerCase().includes(queryText) || u.college.toLowerCase().includes(queryText));
+            renderTable(filtered);
+        } else {
+            let filtered = voters.filter(v => v.name.toLowerCase().includes(queryText) || v.studentId.toLowerCase().includes(queryText) || v.college.toLowerCase().includes(queryText));
+            if (verificationFilter !== 'all') filtered = filtered.filter(v => v.verification === verificationFilter);
+            renderTable(filtered);
+        }
+    };
+
+    window.validateOrgInputs = () => {
+        const inputs = getCurrentOrgInputs();
+        const btn = document.getElementById('submitUserBtn');
+        const allFilled = inputs.f && inputs.l && inputs.e;
+        let shouldEnable = editingId ? (allFilled && JSON.stringify(inputs) !== originalData) : allFilled;
+        btn.disabled = !shouldEnable;
+        btn.classList.toggle('opacity-50', !shouldEnable);
+    };
+
+    function getCurrentOrgInputs() {
+        return {
+            f: document.getElementById('f-name').value.trim(),
+            l: document.getElementById('l-name').value.trim(),
+            e: document.getElementById('email').value.trim(),
+            c: document.getElementById('college').value,
+            s: document.getElementById('status').value
+        };
+    }
 
     window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
-    
+
     window.showToast = (title, msg, subMsg = null, icon = "fa-check", iconBg = "bg-green-500") => {
         const overlay = document.getElementById('toast-overlay');
         document.getElementById('toast-title').innerText = title;
@@ -298,17 +354,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2500);
     };
 
-    window.handleSearch = (val) => {
-        const queryText = val.toLowerCase();
-        if (currentTab === 'Org') {
-            const filtered = orgUsers.filter(u => u.name.toLowerCase().includes(queryText) || u.college.toLowerCase().includes(queryText));
-            renderTable(filtered);
-        } else {
-            let filtered = voters.filter(v => v.name.toLowerCase().includes(queryText) || v.studentId.toLowerCase().includes(queryText) || v.college.toLowerCase().includes(queryText));
-            if (verificationFilter !== 'all') filtered = filtered.filter(v => v.verification === verificationFilter);
-            renderTable(filtered);
-        }
-    };
+    // Watchers
+    document.querySelectorAll('#userModal input, #userModal select').forEach(el => el.addEventListener('input', validateOrgInputs));
+    document.getElementById('v-status').addEventListener('change', validateVoterInput);
+    
+    window.confirmLogout = async () => { await signOut(auth); window.location.href = "index.html"; };
+    window.showLogoutModal = () => document.getElementById('logoutModalOverlay').classList.remove('hidden');
+    window.closeLogoutModal = () => document.getElementById('logoutModalOverlay').classList.add('hidden');
 
     syncUserDatabase();
     switchTab('Org');

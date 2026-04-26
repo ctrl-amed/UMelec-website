@@ -14,7 +14,6 @@
         .status-tab.active { color: #0098E0; }
         .status-tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background: #0098E0; border-radius: 2px; }
         
-        /* Dropdown Styling */
         .filter-dropdown { display: none; position: absolute; right: 0; top: 110%; background: white; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 50; width: 160px; overflow: hidden; }
         .filter-dropdown.show { display: block; }
         .filter-dropdown button { width: 100%; padding: 10px 16px; text-align: left; font-size: 12px; font-weight: 700; color: #4B5563; }
@@ -35,6 +34,16 @@
         </div>
     </div>
 
+    <div id="logoutModalOverlay" class="fixed inset-0 z-[400] hidden flex items-center justify-center p-4 modal-overlay" onclick="closeLogoutModal()">
+        <div class="bg-white rounded-[40px] p-10 max-w-sm w-full text-center shadow-2xl" onclick="event.stopPropagation()">
+            <h4 class="text-lg font-bold text-gray-800 mb-6 px-4 leading-relaxed">Are you sure you want to logout?</h4>
+            <div class="flex gap-4">
+                <button onclick="closeLogoutModal()" class="flex-1 py-3 bg-white text-gray-800 rounded-full font-bold border border-gray-200 hover:bg-gray-50 transition shadow-sm">Cancel</button>
+                <a href="index.php" class="flex-1 py-3 bg-blue-gradient text-white rounded-full font-bold shadow-lg hover:brightness-110 transition flex items-center justify-center">Logout</a>
+            </div>
+        </div>
+    </div>
+
     <div class="flex flex-col lg:flex-row min-h-screen p-0 lg:p-4 gap-0 lg:gap-6">
         <aside class="w-full lg:w-72 bg-sidebar-gradient lg:rounded-3xl flex flex-col p-6 text-white shadow-xl z-10">
             <div class="flex items-center gap-3 mb-10">
@@ -50,7 +59,16 @@
                 <a href="Cosel-FandA.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80"><i class="fas fa-bullhorn text-sm"></i> <span class="font-medium">FAQs & Announcements</span></a>
                 <a href="Cosel-Settings.html" class="flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80"><i class="fas fa-cog text-sm"></i> <span class="font-medium">Settings</span></a>
             </nav>
-            <button onclick="showLogoutModal()" class="mt-8 w-full py-3 rounded-xl bg-blue-gradient border border-white/20 shadow-lg font-semibold hover:brightness-110 transition text-sm">Logout</button>
+
+
+<div class="mt-auto pt-6 border-t border-white/20 mb-4 px-2">
+    <div class="flex flex-col text-left">
+        <span class="font-bold text-sm lg:text-base tracking-wide uppercase">COSEL</span>
+        <span class="text-xs lg:text-sm text-white/70 font-medium italic">Chairperson</span>
+    </div>
+</div>
+
+<button onclick="showLogoutModal()" class="w-full py-3 rounded-xl bg-blue-gradient border border-white/20 shadow-lg font-semibold hover:brightness-110 transition text-sm">Logout</button>
         </aside>
 
         <main class="flex-1 p-4 lg:p-6">
@@ -75,14 +93,11 @@
             </div>
 
             <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                <div id="list-header-content" class="p-6 flex justify-between items-center border-b border-gray-50">
-                    </div>
+                <div id="list-header-content" class="p-6 flex justify-between items-center border-b border-gray-50"></div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
-                        <thead id="table-head" class="bg-blue-gradient text-white text-[11px] uppercase tracking-widest font-bold">
-                            </thead>
-                        <tbody id="user-table-body" class="text-sm font-bold text-gray-600 divide-y divide-gray-50">
-                            </tbody>
+                        <thead id="table-head" class="bg-blue-gradient text-white text-[11px] uppercase tracking-widest font-bold"></thead>
+                        <tbody id="user-table-body" class="text-sm font-bold text-gray-600 divide-y divide-gray-50"></tbody>
                     </table>
                 </div>
             </div>
@@ -109,8 +124,7 @@
                 </div>
                 <div>
                     <label class="text-[10px] uppercase text-gray-400 font-black ml-1">College</label>
-                    <select id="college" class="w-full bg-gray-50 border border-gray-100 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-400 font-bold transition appearance-none">
-                    </select>
+                    <select id="college" class="w-full bg-gray-50 border border-gray-100 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-400 font-bold transition appearance-none"></select>
                 </div>
                 <div>
                     <label class="text-[10px] uppercase text-gray-400 font-black ml-1">Status</label>

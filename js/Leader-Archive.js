@@ -1,20 +1,25 @@
-
 import { auth, db } from './firebase.js'; 
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
     collection, query, where, getDoc, getDocs, doc 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
+    // --- DOM ELEMENTS ---
     const tableBody = document.getElementById('archiveTableBody');
     const viewModal = document.getElementById('viewModal');
     const exportPrompt = document.getElementById('exportPrompt');
     const toastOverlay = document.getElementById('toastOverlay');
     const successToast = document.getElementById('successToast');
+    const logoutModal = document.getElementById('logoutModal');
+    const sidebarLogoutBtn = document.getElementById('logoutBtn');
+    const closeLogout = document.getElementById('closeLogout');
+    const confirmLogout = document.getElementById('confirmLogout');
+    const closeModal = document.getElementById('closeModal');
 
     let currentElection = null;
 
-    // --- GLOBAL UI HELPERS (Ensures HTML buttons can call these) ---
+    // --- GLOBAL UI HELPERS ---
     window.openExportPrompt = () => exportPrompt?.classList.remove('hidden');
     window.closeExportPrompt = () => exportPrompt?.classList.add('hidden');
     
@@ -23,20 +28,28 @@ document.addEventListener('DOMContentLoaded', () => {
         successToast?.classList.remove('toast-animate-center');
     };
 
-    // --- 1. AUTH LISTENER ---
+    // --- 1. AUTH LISTENER & PROFILE INITIALIZATION ---
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             try {
-                const leaderDoc = await getDoc(doc(db, "users", user.uid));
-                if (leaderDoc.exists()) {
-                    const leaderCollege = leaderDoc.data().college; 
-                    fetchArchivedElections(leaderCollege);
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    
+                    // Update Profile UI
+                    const nameDisplay = document.getElementById('userName');
+                    const roleDisplay = document.getElementById('userRole');
+                    if (nameDisplay) nameDisplay.textContent = `${userData.firstname || ''} ${userData.lastname || ''}`.trim() || user.email;
+                    if (roleDisplay) roleDisplay.textContent = `${userData.college} - ${userData.role}`;
+
+                    // Fetch Data for this college
+                    fetchArchivedElections(userData.college);
                 }
             } catch (error) {
-                console.error("Error fetching leader profile:", error);
+                console.error("Error fetching profile:", error);
             }
         } else {
-            window.location.href = "login.html";
+            window.location.href = "index.html"; // Redirect to login/landing
         }
     });
 
@@ -322,120 +335,84 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 8. VOTER TURNOUT PDF ---
-async function downloadVoterTurnoutPDF() {
-    const title = currentElection.electionName || currentElection.title;
-    const college = currentElection.college || "N/A";
-    
-    const modalContainer = document.getElementById('demographicsContent');
-    const yearRows = Array.from(modalContainer.querySelectorAll('.year-row'));
-    
-    // Calculate total ballots cast from the UI counts
-    const totalVotersFromRows = yearRows.reduce((sum, row) => {
-        const countText = row.querySelector('.year-count').innerText;
-        return sum + parseInt(countText.replace(/[^0-9]/g, '') || 0);
-    }, 0);
+    async function downloadVoterTurnoutPDF() {
+        const title = currentElection.electionName || currentElection.title;
+        const college = currentElection.college || "N/A";
+        
+        const modalContainer = document.getElementById('demographicsContent');
+        const yearRows = Array.from(modalContainer.querySelectorAll('.year-row'));
+        
+        const totalVotersFromRows = yearRows.reduce((sum, row) => {
+            const countText = row.querySelector('.year-count').innerText;
+            return sum + parseInt(countText.replace(/[^0-9]/g, '') || 0);
+        }, 0);
 
-    const turnoutStr = modalContainer.querySelector('.turnout-number')?.innerText.replace('%', '') || "0";
-    const turnoutPerc = parseInt(turnoutStr);
-    const notVotedPerc = 100 - turnoutPerc;
+        const turnoutStr = modalContainer.querySelector('.turnout-number')?.innerText.replace('%', '') || "0";
+        const turnoutPerc = parseInt(turnoutStr);
+        const notVotedPerc = 100 - turnoutPerc;
 
-    const pdfWrapper = document.createElement('div');
-    pdfWrapper.style.padding = "50px";
-    pdfWrapper.style.background = "white";
-    pdfWrapper.style.fontFamily = "'Helvetica Neue', Arial, sans-serif";
+        const pdfWrapper = document.createElement('div');
+        pdfWrapper.style.padding = "50px";
+        pdfWrapper.style.background = "white";
+        pdfWrapper.style.fontFamily = "'Helvetica Neue', Arial, sans-serif";
 
-    pdfWrapper.innerHTML = `
-        <div style="display: flex; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #00537A; padding-bottom: 20px;">
-            <div>
-                <h1 style="font-size: 26px; margin: 0; color: #1f2937;">Voter Turnout Official Report</h1>
-                <p style="margin: 0; color: #4b5563; font-weight: bold;">Commission on Student Election (COSEL)</p>
+        pdfWrapper.innerHTML = `
+            <div style="display: flex; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #00537A; padding-bottom: 20px;">
+                <div>
+                    <h1 style="font-size: 26px; margin: 0; color: #1f2937;">Voter Turnout Official Report</h1>
+                    <p style="margin: 0; color: #4b5563; font-weight: bold;">Commission on Student Election (COSEL)</p>
+                </div>
             </div>
-        </div>
-
-        <div style="margin-bottom: 40px;">
-            <h2 style="font-size: 20px; text-transform: uppercase; color: #111827; margin-bottom: 5px;">${title}</h2>
-            <p style="margin: 0; color: #374151;">College: ${college}</p>
-            <p style="margin: 0; color: #9ca3af; font-size: 12px;">Generated on: ${new Date().toLocaleString()}</p>
-        </div>
-
-        <div style="display: flex; align-items: center; background: #f9fafb; padding: 30px; border-radius: 12px; margin-bottom: 40px; border: 1px solid #e5e7eb;">
-            <div style="position: relative; width: 120px; height: 120px; margin-right: 40px;">
-                <svg viewBox="0 0 36 36" style="transform: rotate(-90deg); width: 120px; height: 120px;">
-                    <circle cx="18" cy="18" r="16" fill="none" stroke="#e5e7eb" stroke-width="3"></circle>
-                    <circle cx="18" cy="18" r="16" fill="none" stroke="#10b981" stroke-width="3" stroke-dasharray="${turnoutPerc}, 100"></circle>
-                </svg>
-                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 22px; font-weight: bold;">${turnoutPerc}%</div>
+            <div style="margin-bottom: 40px;">
+                <h2 style="font-size: 20px; text-transform: uppercase; color: #111827; margin-bottom: 5px;">${title}</h2>
+                <p style="margin: 0; color: #374151;">College: ${college}</p>
+                <p style="margin: 0; color: #9ca3af; font-size: 12px;">Generated on: ${new Date().toLocaleString()}</p>
             </div>
-            <div style="flex: 1;">
-                <h3 style="margin: 0; color: #10b981; font-size: 22px; font-weight: bold;">Verified Participation</h3>
-                <div style="display: flex; gap: 40px; margin-top: 10px;">
-                    <div>
-                        <span style="font-size: 11px; color: #6b7280; display: block; text-transform: uppercase; font-weight: bold;">Voted Students</span>
-                        <span style="font-size: 18px; color: #10b981; font-weight: bold;">${turnoutPerc}%</span>
-                    </div>
-                    <div>
-                        <span style="font-size: 11px; color: #6b7280; display: block; text-transform: uppercase; font-weight: bold;">Not Voted</span>
-                        <span style="font-size: 18px; color: #9ca3af; font-weight: bold;">${notVotedPerc}%</span>
-                    </div>
-                    <div>
-                        <span style="font-size: 11px; color: #6b7280; display: block; text-transform: uppercase; font-weight: bold;">Total Ballots</span>
-                        <span style="font-size: 18px; color: #1f2937; font-weight: bold;">${totalVotersFromRows}</span>
+            <div style="display: flex; align-items: center; background: #f9fafb; padding: 30px; border-radius: 12px; margin-bottom: 40px; border: 1px solid #e5e7eb;">
+                <div style="position: relative; width: 120px; height: 120px; margin-right: 40px;">
+                    <svg viewBox="0 0 36 36" style="transform: rotate(-90deg); width: 120px; height: 120px;">
+                        <circle cx="18" cy="18" r="16" fill="none" stroke="#e5e7eb" stroke-width="3"></circle>
+                        <circle cx="18" cy="18" r="16" fill="none" stroke="#10b981" stroke-width="3" stroke-dasharray="${turnoutPerc}, 100"></circle>
+                    </svg>
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 22px; font-weight: bold;">${turnoutPerc}%</div>
+                </div>
+                <div style="flex: 1;">
+                    <h3 style="margin: 0; color: #10b981; font-size: 22px; font-weight: bold;">Verified Participation</h3>
+                    <div style="display: flex; gap: 40px; margin-top: 10px;">
+                        <div><span style="font-size: 11px; color: #6b7280; display: block; text-transform: uppercase; font-weight: bold;">Voted Students</span><span style="font-size: 18px; color: #10b981; font-weight: bold;">${turnoutPerc}%</span></div>
+                        <div><span style="font-size: 11px; color: #6b7280; display: block; text-transform: uppercase; font-weight: bold;">Not Voted</span><span style="font-size: 18px; color: #9ca3af; font-weight: bold;">${notVotedPerc}%</span></div>
+                        <div><span style="font-size: 11px; color: #6b7280; display: block; text-transform: uppercase; font-weight: bold;">Total Ballots</span><span style="font-size: 18px; color: #1f2937; font-weight: bold;">${totalVotersFromRows}</span></div>
                     </div>
                 </div>
             </div>
-        </div>
+            <h4 style="border-left: 4px solid #00537A; padding-left: 10px; color: #374151; text-transform: uppercase; font-size: 14px; margin-bottom: 20px; font-weight: bold;">Year Level Breakdown</h4>
+            <div style="margin-bottom: 50px;">
+                ${yearRows.map(row => {
+                    const label = row.querySelector('.year-label').innerText;
+                    const countVal = parseInt(row.querySelector('.year-count').innerText.replace(/[^0-9]/g, '') || 0);
+                    const voterShare = totalVotersFromRows > 0 ? ((countVal / totalVotersFromRows) * 100).toFixed(1) : "0.0";
+                    const barColor = window.getComputedStyle(row.querySelector('.year-bar')).backgroundColor;
+                    return `
+                        <div style="margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 8px; font-size: 14px;">
+                                <span style="color: #4b5563;">${label} (${voterShare}%)</span>
+                                <span style="color: #111827;">${countVal} Voters</span>
+                            </div>
+                            <div style="background: #f3f4f6; height: 10px; border-radius: 10px; width: 100%;">
+                                <div style="width: ${voterShare}%; background: ${barColor}; height: 10px; border-radius: 10px;"></div>
+                            </div>
+                        </div>`;
+                }).join('')}
+            </div>
+        `;
 
-        <h4 style="border-left: 4px solid #00537A; padding-left: 10px; color: #374151; text-transform: uppercase; font-size: 14px; margin-bottom: 20px; font-weight: bold;">Year Level Breakdown</h4>
-        
-        <div style="margin-bottom: 50px;">
-            ${yearRows.map(row => {
-                const label = row.querySelector('.year-label').innerText;
-                const countVal = parseInt(row.querySelector('.year-count').innerText.replace(/[^0-9]/g, '') || 0);
-                
-                // Logic: Share of total votes cast
-                const voterShare = totalVotersFromRows > 0 
-                    ? ((countVal / totalVotersFromRows) * 100).toFixed(1) 
-                    : "0.0";
-                
-                const bar = row.querySelector('.year-bar');
-                const color = window.getComputedStyle(bar).backgroundColor;
-                return `
-                    <div style="margin-bottom: 20px;">
-                        <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 8px; font-size: 14px;">
-                            <span style="color: #4b5563;">${label} (${voterShare}%)</span>
-                            <span style="color: #111827;">${countVal} Voters</span>
-                        </div>
-                        <div style="background: #f3f4f6; height: 10px; border-radius: 10px; width: 100%;">
-                            <div style="width: ${voterShare}%; background: ${color}; height: 10px; border-radius: 10px;"></div>
-                        </div>
-                    </div>
-                `;
-            }).join('')}
-        </div>
-
-        <div style="margin-top: 60px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #9ca3af; text-align: center;">
-            <p style="font-weight: bold; text-transform: uppercase;">Official COSEL Archived Document</p>
-            <p>Data reflects the distribution of total ballots cast (${totalVotersFromRows}).</p>
-        </div>
-    `;
-
-    const opt = {
-        margin: 0.5,
-        filename: `${title.replace(/\s+/g, '_')}_Turnout_Report.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 3, useCORS: true, letterRendering: true },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
-
-    if (typeof html2pdf === 'undefined') {
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-        script.onload = () => html2pdf().set(opt).from(pdfWrapper).save();
-        document.head.appendChild(script);
-    } else {
-        html2pdf().set(opt).from(pdfWrapper).save();
+        html2pdf().set({
+            margin: 0.5,
+            filename: `${title.replace(/\s+/g, '_')}_Turnout_Report.pdf`,
+            html2canvas: { scale: 3 },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        }).from(pdfWrapper).save();
     }
-}
 
     // --- 9. VOTER TURNOUT EXCEL (CSV) ---
     function downloadVoterTurnoutExcel() {
@@ -452,20 +429,34 @@ async function downloadVoterTurnoutPDF() {
 
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
+        link.setAttribute("href", URL.createObjectURL(blob));
         link.setAttribute("download", `${title.replace(/\s+/g, '_')}_Turnout_Data.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
     }
 
     function showToast() {
-        toastOverlay.classList.remove('hidden');
-        successToast.classList.add('toast-animate-center');
+        toastOverlay?.classList.remove('hidden');
+        successToast?.classList.add('toast-animate-center');
         setTimeout(window.closeToast, 3000);
     }
 
-    document.getElementById('closeModal').onclick = () => viewModal.classList.add('hidden');
+    // --- MODAL & LOGOUT LISTENERS ---
+    if (closeModal) closeModal.onclick = () => viewModal.classList.add('hidden');
+    
+    if (sidebarLogoutBtn) {
+        sidebarLogoutBtn.onclick = () => logoutModal.classList.remove('hidden');
+    }
+    
+    if (closeLogout) closeLogout.onclick = () => logoutModal.classList.add('hidden');
+    
+    if (confirmLogout) {
+        confirmLogout.onclick = async () => {
+            try {
+                await signOut(auth);
+                window.location.href = "index.html";
+            } catch (err) {
+                console.error("Logout error:", err);
+            }
+        };
+    }
 });

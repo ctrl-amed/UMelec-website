@@ -4,6 +4,7 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth
 // I added doc, setDoc, getDoc, updateDoc here so your functions below actually work!
 import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getFunctions } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDgdbRR1S8ng9lIn6k8XiLNOikbcxLL8Dc",
@@ -22,9 +23,10 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const functions = getFunctions(app, "us-central1");
+const storage = getStorage(app); // Added this line
 
 // 3. Export everything at once
-export { auth, db, functions };
+export { auth, db, functions, storage }; // Added storage to the export
 
 // 4. Your Helper Logic (Exactly as you wrote it!)
 export const VerificationHelper = {

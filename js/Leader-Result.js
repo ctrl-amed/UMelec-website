@@ -3,13 +3,13 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 import { 
     collection, query, where, getDocs, doc, getDoc, updateDoc 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-// Updated import to match your new naming
 import { createLeaderAudit } from './Leader-audit.js'; 
+import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     let currentElectionId = null;
     let leaderCollege = null;
-    let currentLeaderData = null; // Store leader info for auditing
+    let currentLeaderData = null; 
     let toastTimer;
 
     const container = document.getElementById('talliesContainer');
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const toastOverlay = document.getElementById('toastOverlay');
     const successToast = document.getElementById('successToast');
 
-    // --- NEW: DEFAULT LOADING UI ---
+    // --- 1. Loading UI ---
     function showDefaultLoading() {
         if (!container) return;
         container.innerHTML = `
@@ -29,10 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    // Trigger loading immediately when page loads
     showDefaultLoading();
 
-    // --- 1. Auth & Data Initialization ---
+    // --- 2. Auth & Data Initialization ---
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             try {
@@ -41,6 +40,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const data = leaderDoc.data();
                     leaderCollege = data.college;
                     
+                    // Display Profile Info
+                    const nameDisplay = document.getElementById('userName');
+                    const roleDisplay = document.getElementById('userRole');
+                    if (nameDisplay) nameDisplay.textContent = `${data.firstname || ''} ${data.lastname || ''}`;
+                    if (roleDisplay) roleDisplay.textContent = `${data.college} - LEADER`;
+
                     currentLeaderData = {
                         name: `${data.firstname || ''} ${data.lastname || ''}`.trim() || user.email,
                         college: data.college,
@@ -57,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- 2. Fetch Data ---
+    // --- 3. Fetch Real-time Data ---
     async function fetchElectionAndResults() {
         try {
             const q = query(
@@ -177,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
 
-    // --- 3. Approval Workflow ---
+    // --- 4. Approval Workflow ---
     if (approveBtn) {
         approveBtn.addEventListener('click', () => confirmDialog.classList.remove('hidden'));
     }
@@ -233,7 +238,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function updateToOfficial(timestamp) {
-        if (approveBtn) approveBtn.remove();
+        const currentApproveBtn = document.getElementById('approveResultsBtn');
+        if (currentApproveBtn) currentApproveBtn.remove();
+        
         const titleElement = document.getElementById('tallyHeader');
         const nameEl = document.getElementById('electionName');
         const currentTitle = nameEl ? nameEl.innerText : "Election";
@@ -252,11 +259,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (tsEl) tsEl.innerText = `Verified on ${formattedDate}, ${formattedTime}`;
     }
 
-    // --- 4. Logout ---
+    // --- 5. Logout ---
     const logoutModal = document.getElementById('logoutModal');
-    const sidebarLogout = document.getElementById('logoutSidebarBtn');
-    if (sidebarLogout) {
-        sidebarLogout.addEventListener('click', () => {
+    const sidebarLogoutBtn = document.getElementById('logoutSidebarBtn');
+    
+    if (sidebarLogoutBtn) {
+        sidebarLogoutBtn.addEventListener('click', () => {
             if (logoutModal) logoutModal.classList.remove('hidden');
         });
     }
@@ -264,9 +272,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeLogout = document.getElementById('closeLogout');
     if (closeLogout) closeLogout.addEventListener('click', () => logoutModal.classList.add('hidden'));
 
-    const confirmLogout = document.getElementById('confirmLogout');
-    if (confirmLogout) {
-        confirmLogout.addEventListener('click', async () => {
+    const confirmLogoutBtn = document.getElementById('confirmLogout');
+    if (confirmLogoutBtn) {
+        confirmLogoutBtn.addEventListener('click', async () => {
             if (currentLeaderData) {
                 await createLeaderAudit(currentLeaderData, "System Logout", "Leader manually signed out.");
             }

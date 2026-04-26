@@ -1,41 +1,24 @@
 import { auth, db } from './firebase.js';
-// 1. IMPORT YOUR NEW AUDIT TOOL
 import { createLeaderAudit } from './Leader-audit.js'; 
-
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
     collection, query, where, getDocs, doc, getDoc, updateDoc 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// --- Data Source ---
+// --- Global State ---
 let voters = [];
 let selectedVoter = null;
 let currentFilter = 'All';
 let currentLeaderData = null; 
 
-// --- LOADING UI (DEFAULT STATE) ---
-function showInitialLoading() {
-    const tableBody = document.getElementById('voterTableBody');
-    if (!tableBody) return;
-    tableBody.innerHTML = `
-        <tr>
-            <td colspan="6" class="px-4 py-12 text-center">
-                <div class="flex flex-col items-center justify-center space-y-3">
-                    <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                    <p class="text-gray-500 text-sm font-bold animate-pulse">Loading data. Please wait...</p>
-                </div>
-            </td>
-        </tr>
-    `;
-}
-
-// 1. FETCH DATA FROM FIREBASE
+// --- 1. DATA FETCHING (Firebase) ---
 async function fetchVoters(leaderUid) {
     try {
         const leaderDoc = await getDoc(doc(db, "users", leaderUid));
         if (!leaderDoc.exists()) return;
 
         const leaderCollege = leaderDoc.data().college;
+        // Kunin lang ang mga user na kapareho ng college ng Leader pero hindi Leader ang role
         const vQuery = query(collection(db, "users"), where("college", "==", leaderCollege));
         const querySnapshot = await getDocs(vQuery);
         const tempVoters = [];
@@ -54,7 +37,8 @@ async function fetchVoters(leaderUid) {
                     id: data.studentId || docSnap.id,
                     dbId: docSnap.id,
                     name: `${data.firstname || ''} ${data.lastname || ''}`,
-                    college: `${data.college} - ${data.year || 'N/A'}`,
+                    program: data.program || "N/A", // Bagong column from UI
+                    year: data.year || "N/A",       // Bagong column from UI
                     date: displayDate,
                     status: data.isVerified === true ? "Approved" : (data.isVerified === false ? "Rejected" : "Pending"),
                     reason: data.rejectionReason || "",
@@ -69,11 +53,11 @@ async function fetchVoters(leaderUid) {
     } catch (error) {
         console.error("Error fetching table data:", error);
         const tableBody = document.getElementById('voterTableBody');
-        if (tableBody) tableBody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-red-500">Failed to load data.</td></tr>`;
+        if (tableBody) tableBody.innerHTML = `<tr><td colspan="7" class="py-10 text-center text-red-500">Failed to load data.</td></tr>`;
     }
 }
 
-// 2. AUTH STATUS
+// --- 2. AUTHENTICATION ---
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         try {
@@ -83,8 +67,10 @@ onAuthStateChanged(auth, async (user) => {
                 currentLeaderData = {
                     name: `${data.firstname || ''} ${data.lastname || ''}`.trim() || user.email,
                     college: data.college,
+                    position: data.position || "Chairperson",
                     role: "LEADER"
                 };
+                displayProfile();
             }
             await fetchVoters(user.uid);
         } catch (err) {
@@ -95,60 +81,65 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-// 3. EVENT LISTENERS
-document.addEventListener('DOMContentLoaded', () => {
-    // TRIGGER LOADING IMMEDIATELY
-    showInitialLoading();
-    setupEventListeners();
-});
-
-function setupEventListeners() {
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) searchInput.addEventListener('input', applyFilters);
-
-    document.querySelectorAll('.tab-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            updateTabStyles(e.target);
-            currentFilter = e.target.getAttribute('data-status');
-            applyFilters();
-        });
-    });
-
-    document.querySelectorAll('.rejection-check').forEach(ck => {
-        ck.addEventListener('change', () => {
-            const checkedCount = document.querySelectorAll('.rejection-check:checked').length;
-            const btn = document.getElementById('submitRejectBtn');
-            if (btn) {
-                btn.disabled = checkedCount === 0;
-                btn.classList.toggle('opacity-50', checkedCount === 0);
-                btn.classList.toggle('cursor-not-allowed', checkedCount === 0);
-            }
-        });
-    });
-
-    const logoutBtn = document.getElementById('logoutSidebarBtn');
-    if (logoutBtn) logoutBtn.addEventListener('click', () => window.openLogoutModal());
+// --- 3. UI RENDERING ---
+function displayProfile() {
+    const nameDisplay = document.getElementById('userName');
+    const roleDisplay = document.getElementById('userRole');
+    if (nameDisplay && roleDisplay && currentLeaderData) {
+        nameDisplay.textContent = currentLeaderData.name;
+        roleDisplay.textContent = `${currentLeaderData.college} - ${currentLeaderData.position}`;
+    }
 }
 
-// --- CORE ACTIONS ---
+function renderTable(data) {
+    const tableBody = document.getElementById('voterTableBody');
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
 
+    if (data.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-gray-400 text-sm italic">No records matching your search.</td></tr>`;
+        return;
+    }
+
+    data.forEach(voter => {
+        let dotColor = voter.status === 'Approved' ? 'bg-green-500' : (voter.status === 'Rejected' ? 'bg-red-500' : 'bg-yellow-500');
+        tableBody.insertAdjacentHTML('beforeend', `
+            <tr class="hover:bg-gray-50 transition border-b border-gray-50">
+                <td class="px-4 py-3 text-gray-600 text-sm whitespace-nowrap font-normal">${voter.id}</td>
+                <td class="px-4 py-3 text-gray-800 text-sm whitespace-nowrap font-normal">${voter.name}</td>
+                <td class="px-4 py-3 text-gray-600 text-sm whitespace-nowrap font-normal">${voter.program}</td>
+                <td class="px-4 py-3 text-gray-600 text-sm text-center whitespace-nowrap font-normal">${voter.year}</td>
+                <td class="px-4 py-3 text-gray-600 text-sm text-center whitespace-nowrap font-normal">${voter.date}</td>
+                <td class="px-4 py-3 text-center whitespace-nowrap">
+                    <span class="inline-flex items-center gap-1.5 font-normal text-black text-sm">
+                        <span class="w-2 h-2 rounded-full ${dotColor}"></span>
+                        ${voter.status}
+                    </span>
+                </td>
+                <td class="px-4 py-3 text-center">
+                    <button onclick="openReview('${voter.id}')" class="bg-btn-gradient text-white px-4 py-1 rounded-lg text-xs font-medium shadow-md hover:brightness-110 transition">
+                        Review
+                    </button>
+                </td>
+            </tr>
+        `);
+    });
+}
+
+// --- 4. CORE DATABASE ACTIONS ---
 window.confirmApproval = async () => {
     if (!selectedVoter || !currentLeaderData) return;
     try {
         const voterRef = doc(db, "users", selectedVoter.dbId);
         await updateDoc(voterRef, { isVerified: true, rejectionReason: "" });
 
-        await createLeaderAudit(
-            currentLeaderData, 
-            "Approved Voter", 
-            `Approved registration for ${selectedVoter.name} (${selectedVoter.id}).`
-        );
+        await createLeaderAudit(currentLeaderData, "Approved Voter", `Approved registration for ${selectedVoter.name} (${selectedVoter.id}).`);
 
         selectedVoter.status = "Approved";
         applyFilters();
         closeAllModals();
     } catch (e) {
-        console.error("Firebase Update Error:", e);
+        console.error("Approval failed:", e);
     }
 };
 
@@ -161,11 +152,7 @@ window.confirmRejection = async () => {
         const voterRef = doc(db, "users", selectedVoter.dbId);
         await updateDoc(voterRef, { isVerified: false, rejectionReason: reasonStr });
 
-        await createLeaderAudit(
-            currentLeaderData, 
-            "Rejected Voter", 
-            `Rejected registration for ${selectedVoter.name} (${selectedVoter.id}). Reason: ${reasonStr}`
-        );
+        await createLeaderAudit(currentLeaderData, "Rejected Voter", `Rejected registration for ${selectedVoter.name} (${selectedVoter.id}). Reason: ${reasonStr}`);
 
         selectedVoter.status = "Rejected";
         selectedVoter.reason = reasonStr;
@@ -176,39 +163,50 @@ window.confirmRejection = async () => {
     }
 };
 
-// --- MODAL CONTROLS ---
+// --- 5. MODAL CONTROLS ---
+window.openReview = (id) => {
+    selectedVoter = voters.find(v => v.id === id);
+    if (!selectedVoter) return;
+
+    const viewer = document.getElementById('pdfViewer');
+    if (viewer) viewer.src = selectedVoter.pdf;
+    
+    let infoHtml = `
+        <h4 class="text-lg font-bold text-gray-800 mb-6 font-sans">Student Provided Information</h4>
+        <div class="space-y-4 text-gray-600 font-normal text-sm">
+            <p>Name: ${selectedVoter.name}</p>
+            <p>Student ID: ${selectedVoter.id}</p>
+            <p>Program: ${selectedVoter.program}</p>
+            <p>Year: ${selectedVoter.year}</p>
+        </div>`;
+
+    if (selectedVoter.status === 'Rejected') {
+        infoHtml += `<div class="mt-4 space-y-2 text-gray-600 text-sm font-normal">
+                        <p>Status: Rejected</p>
+                        <p class="ml-4 text-red-500 font-bold">Reason: ${selectedVoter.reason || 'Not specified'}</p>
+                     </div>`;
+    }
+
+    const detailContainer = document.getElementById('voterDetailInfo');
+    const actionContainer = document.getElementById('pendingActions');
+    
+    if (detailContainer) detailContainer.innerHTML = infoHtml;
+    if (actionContainer) actionContainer.classList.toggle('hidden', selectedVoter.status !== 'Pending');
+    
+    document.getElementById('reviewModal').classList.remove('hidden');
+};
 
 function closeAllModals() {
     document.getElementById('approveAlert').classList.add('hidden');
     document.getElementById('rejectModal').classList.add('hidden');
     document.getElementById('reviewModal').classList.add('hidden');
-    document.getElementById('pdfViewer').src = "";
+    document.getElementById('logoutModal').classList.add('hidden');
+    const viewer = document.getElementById('pdfViewer');
+    if (viewer) viewer.src = "";
 }
 
-window.openReview = (id) => {
-    selectedVoter = voters.find(v => v.id === id);
-    if (!selectedVoter) return;
-
-    document.getElementById('pdfViewer').src = selectedVoter.pdf;
-    const [college, year] = selectedVoter.college.split(' - ');
-
-    let infoHtml = `
-        <h4 class="text-lg font-bold mb-4">Student Info</h4>
-        <p>Name: ${selectedVoter.name}</p>
-        <p>ID: ${selectedVoter.id}</p>
-        <p>College: ${college}</p>
-        <p>Year: ${year}</p>
-    `;
-    if (selectedVoter.status === "Rejected") {
-        infoHtml += `<p class="text-red-500 font-bold mt-2">Reason: ${selectedVoter.reason}</p>`;
-    }
-
-    document.getElementById('voterDetailInfo').innerHTML = infoHtml;
-    document.getElementById('pendingActions').classList.toggle('hidden', selectedVoter.status !== 'Pending');
-    document.getElementById('reviewModal').classList.remove('hidden');
-};
-
-window.closeReviewModal = () => closeAllModals();
+// I-bind ang functions sa window object para matawag ng inline HTML (onclick)
+window.closeReviewModal = closeAllModals;
 window.openRejectModal = () => {
     document.getElementById('reviewModal').classList.add('hidden');
     document.getElementById('rejectModal').classList.remove('hidden');
@@ -225,16 +223,30 @@ window.closeApproveAlert = () => {
     document.getElementById('approveAlert').classList.add('hidden');
     document.getElementById('reviewModal').classList.remove('hidden');
 };
-
 window.openLogoutModal = () => document.getElementById('logoutModal').classList.remove('hidden');
-window.closeLogoutModal = () => document.getElementById('logoutModal').classList.add('hidden');
+window.closeLogoutModal = closeAllModals;
+
 window.confirmLogout = async () => {
     if (currentLeaderData) await createLeaderAudit(currentLeaderData, "System Logout", "Leader manually signed out.");
     await signOut(auth);
     window.location.href = "index.html";
 };
 
-// --- UTILS ---
+// --- 6. UTILS & EVENT LISTENERS ---
+function applyFilters() {
+    const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || "";
+    const filtered = voters.filter(voter => {
+        const matchesStatus = (currentFilter === 'All' || voter.status === currentFilter);
+        const matchesSearch = (
+            voter.name.toLowerCase().includes(searchTerm) || 
+            voter.id.toLowerCase().includes(searchTerm) || 
+            voter.program.toLowerCase().includes(searchTerm)
+        );
+        return matchesStatus && matchesSearch;
+    });
+    renderTable(filtered);
+}
+
 function updateTabStyles(activeElement) {
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('text-blue-500', 'border-blue-500', 'border-b-2');
@@ -243,39 +255,36 @@ function updateTabStyles(activeElement) {
     activeElement.classList.add('text-blue-500', 'border-blue-500', 'border-b-2');
 }
 
-function applyFilters() {
-    const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || "";
-    const filtered = voters.filter(voter => {
-        const matchesStatus = currentFilter === 'All' || voter.status === currentFilter;
-        const matchesSearch = voter.name.toLowerCase().includes(searchTerm) || voter.id.toLowerCase().includes(searchTerm);
-        return matchesStatus && matchesSearch;
-    });
-    renderTable(filtered);
-}
-
-function renderTable(data) {
+document.addEventListener('DOMContentLoaded', () => {
+    // Initial loading indicator
     const tableBody = document.getElementById('voterTableBody');
-    if (!tableBody) return;
-    tableBody.innerHTML = '';
+    if (tableBody) tableBody.innerHTML = `<tr><td colspan="7" class="px-4 py-12 text-center text-gray-500">Loading data...</td></tr>`;
 
-    if (data.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-gray-400 text-sm italic">No records matching your search.</td></tr>`;
-        return;
-    }
-
-    data.forEach(voter => {
-        let dotColor = voter.status === 'Approved' ? 'bg-green-500' : (voter.status === 'Rejected' ? 'bg-red-500' : 'bg-yellow-500');
-        tableBody.insertAdjacentHTML('beforeend', `
-            <tr class="hover:bg-gray-50 transition border-b border-gray-50">
-                <td class="px-4 py-2 text-gray-600 text-sm">${voter.id}</td>
-                <td class="px-4 py-2 text-gray-800 text-sm">${voter.name}</td>
-                <td class="px-4 py-2 text-gray-600 text-sm">${voter.college}</td>
-                <td class="px-4 py-2 text-gray-600 text-sm text-center">${voter.date}</td>
-                <td class="px-4 py-2 text-center text-sm"><span class="w-2 h-2 inline-block rounded-full ${dotColor} mr-2"></span>${voter.status}</td>
-                <td class="px-4 py-2 text-center">
-                    <button onclick="openReview('${voter.id}')" class="bg-btn-gradient text-white px-4 py-1 rounded-lg text-xs">Review</button>
-                </td>
-            </tr>
-        `);
+    // Tabs
+    document.querySelectorAll('.tab-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            updateTabStyles(e.target);
+            currentFilter = e.target.getAttribute('data-status');
+            applyFilters();
+        });
     });
-}
+
+    // Search
+    document.getElementById('searchInput')?.addEventListener('input', applyFilters);
+
+    // Rejection checkbox listener
+    document.querySelectorAll('.rejection-check').forEach(ck => {
+        ck.addEventListener('change', () => {
+            const checkedCount = document.querySelectorAll('.rejection-check:checked').length;
+            const btn = document.getElementById('submitRejectBtn');
+            if (btn) {
+                btn.disabled = checkedCount === 0;
+                btn.classList.toggle('opacity-50', checkedCount === 0);
+                btn.classList.toggle('cursor-not-allowed', checkedCount === 0);
+            }
+        });
+    });
+
+    // Logout
+    document.getElementById('logoutSidebarBtn')?.addEventListener('click', window.openLogoutModal);
+});
