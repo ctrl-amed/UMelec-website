@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leader - Homepage</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .bg-sidebar-gradient { background: linear-gradient(to bottom, #0098E0, #00537A); }
+        .bg-nav-active, .hover-nav:hover { background: linear-gradient(to bottom, #F5A304, #8F5F02) !important; color: white !important; }
+        .bg-btn-gradient, .bg-blue-gradient { background: linear-gradient(to bottom, #0098E0, #00537A); }
+        .modal-overlay { background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(3px); }
+        .bar-color { background-color: #27A688; }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans min-h-screen">
+
+    <div class="flex flex-col lg:flex-row min-h-screen p-0 lg:p-4 gap-0 lg:gap-6">
+        <aside class="w-full lg:w-72 bg-sidebar-gradient lg:rounded-3xl flex flex-col p-6 text-white shadow-xl z-10">
+            <div class="flex items-center gap-3 mb-6 lg:mb-10">
+                <img src="images/COSELLOGO.png" alt="Logo" class="w-10 h-10 lg:w-12 lg:h-12 rounded-full border border-white/30">
+                <h1 class="text-xs lg:text-sm font-bold leading-tight uppercase tracking-wide">Commission on <br> Student Election</h1>
+            </div>
+            
+            <nav class="flex flex-row lg:flex-col flex-1 gap-2 lg:gap-4 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 no-scrollbar">
+                <button class="flex-none lg:w-full flex items-center gap-3 p-3 rounded-lg bg-nav-active shadow-md transition whitespace-nowrap">
+                    <i class="fas fa-home text-sm"></i> 
+                    <span class="font-medium text-sm lg:text-base">Homepage</span>
+                </button> 
+                <a href="Leader-VoterManagement.html" class="flex-none lg:w-full flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80 hover:text-white whitespace-nowrap">
+                    <i class="fas fa-users text-sm"></i>
+                    <span class="font-medium text-sm lg:text-base">Voter Management</span>
+                </a>
+                <a href="Leader-ResultManagement.html" class="flex-none lg:w-full flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80 hover:text-white whitespace-nowrap">
+                    <i class="fas fa-poll text-sm"></i> 
+                    <span class="font-medium text-sm lg:text-base">Result Management</span>
+                </a>    
+                <a href="Leader-RandD.html" class="flex-none lg:w-full flex items-center gap-3 p-3 rounded-lg hover-nav transition text-white/80 hover:text-white whitespace-nowrap">
+                    <i class="fas fa-file-alt text-sm"></i>
+                    <span class="font-medium text-sm lg:text-base">Reports and Documents</span>
+                </a>
+            </nav>
+
+            <div class="mt-auto pt-6 border-t border-white/20 mb-4 px-2">
+                <div class="flex flex-col text-left">
+                    <span id="profileName" class="font-bold text-base tracking-wide uppercase">Loading...</span>
+                    <span id="profileRole" class="text-xs text-white/70 font-medium italic">Loading...</span>
+                </div>
+            </div>
+
+            <button onclick="openLogoutModal()" class="w-full py-3 rounded-xl bg-btn-gradient border border-white/20 shadow-lg font-semibold hover:brightness-110 transition text-sm">
+                Logout
+            </button>
+        </aside>
+
+        <main class="flex-1 p-4 lg:p-8">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-800">Welcome back, <span id="welcomeName">...</span>!</h2>
+                <p class="text-gray-500 font-medium" id="currentDateDisplay">Today is ...</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="bg-blue-gradient rounded-3xl p-8 text-white shadow-xl flex flex-col items-center justify-center min-h-[280px]">
+                    <h3 class="text-lg font-bold mb-6">Election Status: <span id="electionStatus">...</span></h3>
+                    
+                    <div class="flex items-center justify-center gap-4 w-full">
+                        <div class="text-center">
+                            <span id="days" class="text-4xl font-black block">00</span>
+                            <span class="text-[10px] uppercase font-bold opacity-70">Days</span>
+                        </div>
+                        <div class="h-10 w-[1px] bg-white/30"></div>
+                        <div class="text-center">
+                            <span id="hours" class="text-4xl font-black block">00</span>
+                            <span class="text-[10px] uppercase font-bold opacity-70">Hours</span>
+                        </div>
+                        <div class="h-10 w-[1px] bg-white/30"></div>
+                        <div class="text-center">
+                            <span id="minutes" class="text-4xl font-black block">00</span>
+                            <span class="text-[10px] uppercase font-bold opacity-70">Minutes</span>
+                        </div>
+                        <div class="h-10 w-[1px] bg-white/30"></div>
+                        <div class="text-center">
+                            <span id="seconds" class="text-4xl font-black block">00</span>
+                            <span class="text-[10px] uppercase font-bold opacity-70">Seconds</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex items-center gap-2">
+                        <i class="fas fa-hourglass-half"></i>
+                        <span id="timerText" class="text-sm font-medium">Loading status...</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl p-8 shadow-md border border-gray-100 min-h-[280px] flex flex-col">
+                    <div class="flex items-center gap-2 mb-6">
+                        <i class="fas fa-hourglass-half text-gray-800"></i>
+                        <h3 class="font-bold text-gray-800 uppercase tracking-tight">Already Voted</h3>
+                    </div>
+                    
+                    <div class="space-y-4 flex-1 min-h-[180px]" id="barChartContainer">
+                        <p id="chartLoading" class="text-sm text-gray-400">Loading turnout data...</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                        <p class="text-sm font-bold text-gray-700">Total Student: <span id="totalVotedCount">0</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-3xl p-8 shadow-md border border-gray-100 flex flex-col">
+                    <div class="flex items-center gap-2 mb-6 text-gray-800">
+                        <i class="fas fa-hourglass-half text-gray-800"></i>
+                        <h3 class="font-bold uppercase tracking-tight">Pending Registration</h3>
+                    </div>
+                    <div class="flex items-center gap-4 mb-4">
+                        <div id="pendingCount" class="bg-blue-gradient text-white text-3xl font-black px-8 py-5 rounded-2xl shadow-lg">0</div>
+                        <p class="text-base font-bold text-gray-700 leading-tight">Registration awaiting review</p>
+                    </div>
+                    <div class="flex justify-end mt-auto">
+                        <button onclick="navToVoters('Pending')" class="text-blue-500 underline font-bold text-sm">View All</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl p-8 shadow-md border border-gray-100 flex flex-col">
+                    <div class="flex items-center gap-2 mb-6 text-gray-800">
+                        <i class="fas fa-users text-gray-800"></i>
+                        <h3 class="font-bold uppercase tracking-tight">Registered Users</h3>
+                    </div>
+                    <div class="flex items-center gap-4 mb-4">
+                        <div id="registeredCount" class="bg-blue-gradient text-white text-3xl font-black px-8 py-5 rounded-2xl shadow-lg">0</div>
+                        <p class="text-base font-bold text-gray-700 leading-tight">Voters</p>
+                    </div>
+                    <div class="flex justify-end mt-auto">
+                        <button onclick="navToVoters('Approved')" class="text-blue-500 underline font-bold text-sm">View All</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="logoutModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-overlay">
+        <div class="bg-white rounded-2xl p-8 w-full max-w-sm shadow-2xl text-center">
+            <h4 class="text-lg font-bold text-gray-800 mb-6">Are you sure you want to logout?</h4>
+            <div class="flex gap-4">
+                <button onclick="closeLogoutModal()" class="flex-1 py-2.5 border border-gray-300 rounded-full font-semibold text-gray-600 hover:bg-gray-100 transition">Cancel</button>
+                <button onclick="confirmLogout()" class="flex-1 py-2.5 bg-btn-gradient text-white rounded-full font-semibold hover:brightness-110 transition">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/Leader-HP.js"></script>
+</body>
+</html>

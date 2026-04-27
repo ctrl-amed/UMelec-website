@@ -111,7 +111,7 @@ loginForm.addEventListener('submit', function (e) {
                     showSuccess(
                         "Login Success", 
                         `Welcome back, Leader ${userData.firstname}!`, 
-                        "Leader-VoterManagement.html"
+                        "Leader-Homepage.html"
                     );
                 }
             } else {
