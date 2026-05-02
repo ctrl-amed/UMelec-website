@@ -1,4 +1,5 @@
 import { auth, db } from './firebase.js';
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
     collection, 
     onSnapshot, 
@@ -8,7 +9,6 @@ import {
     doc,
     orderBy
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 // --- Global State ---
 let electionsDB = [];

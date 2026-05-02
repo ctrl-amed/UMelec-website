@@ -1,84 +1,118 @@
 import { auth, db } from './firebase.js';
-import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { 
-    doc, 
-    setDoc, 
-    getDoc, 
-    collection, 
-    addDoc, 
-    serverTimestamp 
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+    doc,
+    setDoc,
+    collection,
+    addDoc,
+    serverTimestamp,
+    onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', async () => {
-    
-    // --- 1. INITIAL LOAD: Sync UI with Database ---
-    const syncSettingsWithDB = async () => {
-        try {
-            const settingsRef = doc(db, "settings", "archive_policy");
-            const docSnap = await getDoc(settingsRef);
+    const settingsRef = doc(db, "settings", "archive_policy");
+    const backupTimeEl = document.getElementById('last-backup-time');
+    const backupBadgeEl = document.getElementById('backup-status-badge');
 
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                // Update Dropdown
-                if (data.frequency) document.getElementById('archive-frequency').value = data.frequency;
-                // Update Toggle
-                if (data.deleteSessionData !== undefined) document.getElementById('toggle').checked = data.deleteSessionData;
-                // Update Last Backup Time
-                if (data.lastBackup) {
-                    const date = data.lastBackup.toDate();
-                    document.getElementById('last-backup-time').innerText = date.toLocaleString();
-                }
-            }
-        } catch (error) {
-            console.error("Initial Sync Error:", error);
+    function updateBackupStatusUI(lastBackupTimestamp) {
+        if (!backupBadgeEl || !backupTimeEl) return;
+
+        if (!lastBackupTimestamp) {
+            backupTimeEl.innerText = "No backup yet";
+            backupBadgeEl.innerText = "Not Backed Up";
+            backupBadgeEl.className = "px-3 py-1 bg-gray-100 text-gray-600 rounded-full uppercase tracking-widest text-[10px]";
+            return;
         }
-    };
 
-    await syncSettingsWithDB();
+        const backupDate = lastBackupTimestamp.toDate ? lastBackupTimestamp.toDate() : new Date(lastBackupTimestamp);
+        backupTimeEl.innerText = backupDate.toLocaleString();
 
-    // --- 2. ARCHIVE SETTINGS (Backend Writes) ---
+        const ageMs = Date.now() - backupDate.getTime();
+        const ageDays = ageMs / (1000 * 60 * 60 * 24);
+
+        if (ageDays < 1) {
+            backupBadgeEl.innerText = "Successful";
+            backupBadgeEl.className = "px-3 py-1 bg-green-100 text-green-600 rounded-full uppercase tracking-widest text-[10px]";
+        } else if (ageDays < 7) {
+            backupBadgeEl.innerText = "Successful";
+            backupBadgeEl.className = "px-3 py-1 bg-green-100 text-green-600 rounded-full uppercase tracking-widest text-[10px]";
+        } else if (ageDays < 30) {
+            backupBadgeEl.innerText = "Aging";
+            backupBadgeEl.className = "px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full uppercase tracking-widest text-[10px]";
+        } else {
+            backupBadgeEl.innerText = "Outdated";
+            backupBadgeEl.className = "px-3 py-1 bg-red-100 text-red-600 rounded-full uppercase tracking-widest text-[10px]";
+        }
+    }
+
+    onSnapshot(settingsRef, (docSnap) => {
+        if (!docSnap.exists()) {
+            updateBackupStatusUI(null);
+            return;
+        }
+
+        const data = docSnap.data();
+
+        if (data.frequency) {
+            document.getElementById('archive-frequency').value = data.frequency;
+        }
+
+        if (typeof data.deleteSessionData === 'boolean') {
+            document.getElementById('toggle').checked = data.deleteSessionData;
+        }
+
+        updateBackupStatusUI(data.lastBackup || null);
+    }, (error) => {
+        console.error("Settings Sync Error:", error);
+    });
+
     window.handleFrequencyChange = async (val) => {
-        console.log("Saving frequency:", val);
         try {
-            await setDoc(doc(db, "settings", "archive_policy"), {
+            await setDoc(settingsRef, {
                 frequency: val,
                 updatedAt: serverTimestamp()
             }, { merge: true });
-            showToast('', 'Archive frequency updated in database.');
+
+            showToast("Saved", "Archive frequency updated.");
         } catch (error) {
-            showToast('Error', 'Failed to save frequency.');
+            console.error("Frequency Save Error:", error);
+            showToast("Error", "Failed to save frequency.");
         }
     };
 
     window.handlePolicyToggle = async (isEnabled) => {
         try {
-            await setDoc(doc(db, "settings", "archive_policy"), {
+            await setDoc(settingsRef, {
                 deleteSessionData: isEnabled,
                 updatedAt: serverTimestamp()
             }, { merge: true });
-            showToast('', `Deletion policy set to ${isEnabled ? 'Enabled' : 'Disabled'}.`);
+
+            showToast("Saved", `Deletion policy set to ${isEnabled ? 'Enabled' : 'Disabled'}.`);
         } catch (error) {
-            showToast('Error', 'Failed to update policy.');
+            console.error("Toggle Save Error:", error);
+            showToast("Error", "Failed to update policy.");
         }
     };
 
-    // --- 3. BACKUP PROCESS (Real Firestore Request) ---
     window.startBackupProcess = async () => {
         document.getElementById('backup-step-1').classList.add('hidden');
         document.getElementById('backup-step-2').classList.remove('hidden');
 
         const progressEl = document.getElementById('backup-progress');
-        
+        const badge = document.getElementById('backup-status-badge');
+
+        if (badge) {
+            badge.innerText = "Backing Up";
+            badge.className = "px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full uppercase tracking-widest text-[10px]";
+        }
+
         try {
-            // Log the backup request to Firestore
-            // A Backend Cloud Function would usually trigger upon this creation
             await addDoc(collection(db, "backups"), {
                 requestedBy: auth.currentUser ? auth.currentUser.email : "System Admin",
                 status: "requested",
                 timestamp: serverTimestamp()
             });
 
-            // Visual Progress (Matching the UI requirement)
             let progress = 0;
             const interval = setInterval(async () => {
                 progress += 10;
@@ -86,40 +120,45 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 if (progress >= 100) {
                     clearInterval(interval);
-                    
-                    // Update the "Last Backup" timestamp in the main settings doc
-                    const now = new Date();
-                    await setDoc(doc(db, "settings", "archive_policy"), {
-                        lastBackup: serverTimestamp()
+
+                    await setDoc(settingsRef, {
+                        lastBackup: serverTimestamp(),
+                        updatedAt: serverTimestamp()
                     }, { merge: true });
 
-                    document.getElementById('last-backup-time').innerText = now.toLocaleString();
                     closeBackupModal();
-                    showToast('', 'Manual backup has been initiated and logged.');
+                    showToast("Backup Complete", "Manual backup completed successfully.");
                 }
             }, 150);
-
         } catch (error) {
             console.error("Backup Error:", error);
-            showToast('Error', 'Could not initiate backup.');
+
+            if (badge) {
+                badge.innerText = "Failed";
+                badge.className = "px-3 py-1 bg-red-100 text-red-600 rounded-full uppercase tracking-widest text-[10px]";
+            }
+
             closeBackupModal();
+            showToast("Error", "Could not initiate backup.");
         }
     };
 
-    // --- 4. LOGOUT & UI HELPERS ---
     window.showLogoutModal = () => document.getElementById('logoutModalOverlay').classList.remove('hidden');
     window.closeLogoutModal = () => document.getElementById('logoutModalOverlay').classList.add('hidden');
+
     window.openBackupModal = () => {
         document.getElementById('backup-step-1').classList.remove('hidden');
         document.getElementById('backup-step-2').classList.add('hidden');
+        document.getElementById('backup-progress').innerText = "0%";
         document.getElementById('backupModal').classList.remove('hidden');
     };
+
     window.closeBackupModal = () => document.getElementById('backupModal').classList.add('hidden');
 
     window.confirmLogout = async () => {
         try {
             await signOut(auth);
-            window.location.href = "index.html"; 
+            window.location.href = "index.html";
         } catch (error) {
             console.error("Logout Error:", error);
         }
@@ -132,7 +171,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('toast-msg').innerText = msg;
         overlay.classList.remove('hidden');
         setTimeout(() => container.classList.remove('scale-95', 'opacity-0'), 10);
-        setTimeout(hideToast, 3000);
+        setTimeout(window.hideToast, 3000);
     };
 
     window.hideToast = () => {
