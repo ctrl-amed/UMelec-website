@@ -38,6 +38,33 @@ document.addEventListener('DOMContentLoaded', () => {
     let barChart, pieChart, modalPie, modalBar;
     let timerInterval;
     let activeVoteListener = null;
+    const BAR_GREEN = '#27A688';
+    const PIE_POSITIVE = '#27A688';
+    const PIE_NEGATIVE = '#D33131';
+    const PIE_NEUTRAL = '#515167';
+
+    const barValuePlugin = {
+        id: 'barValuePlugin',
+        afterDatasetsDraw(chart) {
+            const { ctx, data, chartArea } = chart;
+            const dataset = data.datasets[0];
+            if (!dataset) return;
+
+            ctx.save();
+            ctx.font = '700 12px Poppins, Arial, sans-serif';
+            ctx.fillStyle = '#1f2937';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+
+            chart.getDatasetMeta(0).data.forEach((bar, index) => {
+                const value = dataset.data[index] || 0;
+                const x = Math.min(bar.x + 8, chartArea.right - 22);
+                ctx.fillText(value.toLocaleString(), x, bar.y);
+            });
+
+            ctx.restore();
+        }
+    };
 
     function init() {
         setupStaticFilters();
@@ -281,10 +308,10 @@ document.addEventListener('DOMContentLoaded', () => {
         barChart = new Chart(document.getElementById('voterBarChart'), {
             type: 'bar',
             data: {
-                labels: ['1st Year', '2nd Year', '3rd Year', '4th Year'],
+                labels: ['1st', '2nd', '3rd', '4th'],
                 datasets: [{
                     data: Object.values(years),
-                    backgroundColor: '#27A688',
+                    backgroundColor: BAR_GREEN,
                     borderRadius: 4,
                     barThickness: 15
                 }]
@@ -294,10 +321,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 plugins: { legend: { display: false }, tooltip: { enabled: false } },
                 maintainAspectRatio: false,
                 scales: {
-                    x: { display: false },
-                    y: { grid: { display: false }, border: { display: false } }
+                    x: {
+                        display: false,
+                        max: Math.max(...Object.values(years), 1) * 1.25
+                    },
+                    y: {
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: {
+                            color: '#6b7280',
+                            font: { family: 'Poppins', size: 12, weight: '700' }
+                        }
+                    }
                 }
-            }
+            },
+            plugins: [barValuePlugin]
         });
 
         const visibleForSummary = data.filter(e => getMonitorStatus(e) !== 'hidden');
@@ -319,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         ? [statusCounts.approved, statusCounts.completed, statusCounts.rejected]
                         : [1],
                     backgroundColor: totalSummary > 0
-                        ? ['#515167', '#27A688', '#D33131']
+                        ? [PIE_NEUTRAL, PIE_POSITIVE, PIE_NEGATIVE]
                         : ['#E5E7EB'],
                     borderWidth: 0,
                     cutout: '75%'
@@ -433,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const totalV = data.voted + data.notVoted;
             document.getElementById('percent-voted').innerText = `${totalV > 0 ? Math.round((data.voted / totalV) * 100) : 0}%`;
             document.getElementById('percent-not-voted').innerText = `${totalV > 0 ? Math.round((data.notVoted / totalV) * 100) : 0}%`;
-            document.getElementById('modal-total-students').innerText = eligibleCount;
+            document.getElementById('modal-total-students').innerText = years.reduce((sum, count) => sum + count, 0);
         });
 
         startCountdown(election.endDate);
@@ -479,7 +517,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 labels: ['Voted', 'Not Voted'],
                 datasets: [{
                     data: [data.voted, data.notVoted],
-                    backgroundColor: ['#27A688', '#515167'],
+                    backgroundColor: [PIE_POSITIVE, PIE_NEGATIVE],
                     borderWidth: 0,
                     cutout: '70%'
                 }]
@@ -493,10 +531,10 @@ document.addEventListener('DOMContentLoaded', () => {
         modalBar = new Chart(document.getElementById('modalBarChart'), {
             type: 'bar',
             data: {
-                labels: ['1st Yr', '2nd Yr', '3rd Yr', '4th Yr'],
+                labels: ['1st', '2nd', '3rd', '4th'],
                 datasets: [{
                     data: data.years,
-                    backgroundColor: '#27A688',
+                    backgroundColor: BAR_GREEN,
                     borderRadius: 4,
                     barThickness: 15
                 }]
@@ -506,10 +544,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false }, tooltip: { enabled: false } },
                 scales: {
-                    x: { display: false },
-                    y: { grid: { display: false }, border: { display: false } }
+                    x: {
+                        display: false,
+                        max: Math.max(...data.years, 1) * 1.25
+                    },
+                    y: {
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: {
+                            color: '#6b7280',
+                            font: { family: 'Poppins', size: 12, weight: '700' }
+                        }
+                    }
                 }
-            }
+            },
+            plugins: [barValuePlugin]
         });
     }
 

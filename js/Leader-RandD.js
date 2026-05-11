@@ -154,20 +154,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateAnalyticsUI(stats, total) {
         const container = document.querySelector('#analyticsModal .space-y-4');
         if (!container) return;
-        const colors = { "1st Year": "bg-blue-500", "2nd Year": "bg-orange-500", "3rd Year": "bg-green-500", "4th Year": "bg-red-500" };
+        const shortLabels = { "1st Year": "1st", "2nd Year": "2nd", "3rd Year": "3rd", "4th Year": "4th" };
         
-        container.innerHTML = Object.entries(stats).map(([label, count]) => {
+        container.innerHTML = `<div class="ui-bar-graph">` + Object.entries(stats).map(([label, count]) => {
             const percentage = total > 0 ? (count / total) * 100 : 0;
             return `
-                <div class="space-y-1">
-                    <div class="flex justify-between text-xs font-bold text-gray-500">
-                        <span>${label}</span><span>${count} Students</span>
+                <div class="ui-bar-row">
+                    <span class="ui-bar-label">${shortLabels[label] || label}</span>
+                    <div class="ui-bar-track h-4">
+                        <div class="ui-bar-fill h-4" style="width: ${percentage}%"></div>
                     </div>
-                    <div class="w-full bg-gray-100 rounded-full h-4 overflow-hidden">
-                        <div class="${colors[label]} h-4 transition-all duration-1000" style="width: ${percentage}%"></div>
-                    </div>
+                    <span class="ui-bar-value">${count.toLocaleString()}</span>
                 </div>`;
-        }).join('');
+        }).join('') + `</div><p class="ui-bar-total">Total Students: ${total.toLocaleString()}</p>`;
     }
 
     // --- 4. EXPORT ENGINE ---
@@ -230,22 +229,18 @@ async function downloadVoterTurnoutPDF() {
     
     // Get the analytics container from the RAND modal
     const modalContainer = document.querySelector('#analyticsModal .space-y-4');
-    const rows = Array.from(modalContainer.children);
+        const rows = Array.from(modalContainer.querySelectorAll('.ui-bar-row'));
     
     // Calculate total ballots cast from the UI counts (RAND style uses "X Students")
     let totalVoters = 0;
-    const data = rows.map(row => {
+        const data = rows.map(row => {
         const labels = row.querySelectorAll('span');
         const label = labels[0]?.innerText || "Year Level";
-        const countText = labels[1]?.innerText || "0 Students";
+        const countText = labels[1]?.innerText || "0";
         const countVal = parseInt(countText.replace(/[^0-9]/g, '') || 0);
         totalVoters += countVal;
-
-        // Get color from the tailwind-like background class
-        const barDiv = row.querySelector('.h-4 > div');
-        const color = window.getComputedStyle(barDiv).backgroundColor;
         
-        return { label, countVal, color };
+        return { label, countVal, color: '#27A688' };
     });
 
     // For RAND, we calculate turnout percentage based on the data provided
@@ -277,20 +272,20 @@ async function downloadVoterTurnoutPDF() {
             <div style="position: relative; width: 120px; height: 120px; margin-right: 40px;">
                 <svg viewBox="0 0 36 36" style="transform: rotate(-90deg); width: 120px; height: 120px;">
                     <circle cx="18" cy="18" r="16" fill="none" stroke="#e5e7eb" stroke-width="3"></circle>
-                    <circle cx="18" cy="18" r="16" fill="none" stroke="#10b981" stroke-width="3" stroke-dasharray="${turnoutPerc}, 100"></circle>
+                    <circle cx="18" cy="18" r="16" fill="none" stroke="#27A688" stroke-width="3" stroke-dasharray="${turnoutPerc}, 100"></circle>
                 </svg>
                 <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 22px; font-weight: bold;">${turnoutPerc}%</div>
             </div>
             <div style="flex: 1;">
-                <h3 style="margin: 0; color: #10b981; font-size: 22px; font-weight: bold;">Verified Participation</h3>
+                <h3 style="margin: 0; color: #27A688; font-size: 22px; font-weight: bold;">Verified Participation</h3>
                 <div style="display: flex; gap: 40px; margin-top: 10px;">
                     <div>
                         <span style="font-size: 11px; color: #6b7280; display: block; text-transform: uppercase; font-weight: bold;">Voted Students</span>
-                        <span style="font-size: 18px; color: #10b981; font-weight: bold;">${turnoutPerc}%</span>
+                        <span style="font-size: 18px; color: #27A688; font-weight: bold;">${turnoutPerc}%</span>
                     </div>
                     <div>
                         <span style="font-size: 11px; color: #6b7280; display: block; text-transform: uppercase; font-weight: bold;">Not Voted</span>
-                        <span style="font-size: 18px; color: #9ca3af; font-weight: bold;">${notVotedPerc}%</span>
+                        <span style="font-size: 18px; color: #D33131; font-weight: bold;">${notVotedPerc}%</span>
                     </div>
                     <div>
                         <span style="font-size: 11px; color: #6b7280; display: block; text-transform: uppercase; font-weight: bold;">Total Ballots</span>
@@ -469,10 +464,10 @@ async function downloadVoterTurnoutPDF() {
 
     function downloadVoterTurnoutExcel() {
         let csv = "Year Level,Students\n";
-        document.querySelectorAll('#analyticsModal .space-y-4 > div').forEach(row => {
+        document.querySelectorAll('#analyticsModal .ui-bar-row').forEach(row => {
             const spans = row.querySelectorAll('span');
             if (spans.length >= 2) {
-                csv += `${spans[0].innerText},${spans[1].innerText.replace(' Students','')}\n`;
+                csv += `${spans[0].innerText},${spans[1].innerText}\n`;
             }
         });
         const blob = new Blob([csv], { type: 'text/csv' });

@@ -6,6 +6,7 @@
     <title>Cosel - Analytics and Reports</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/ui-system.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .bg-sidebar-gradient, .bg-btn-gradient, .bg-blue-gradient { background: linear-gradient(to bottom, #0098E0, #00537A); }
@@ -127,18 +128,18 @@
                         <canvas id="voterBarChart"></canvas>
                     </div>
                     <div class="mt-4 pt-4 border-t border-gray-50 flex justify-between items-center">
-                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Students</span>
+                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Students:</span>
                         <span id="main-total-students" class="text-lg font-black text-gray-800">0</span>
                     </div>
                 </div>
 
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
                     <h3 class="font-black text-gray-800 uppercase text-[10px] tracking-widest mb-6">Election Summary</h3>
-                    <div class="flex items-center justify-around h-[220px]">
-                        <div class="w-40 h-40">
+                    <div class="flex flex-col sm:flex-row items-center justify-around gap-4 min-h-[220px]">
+                        <div class="w-40 h-40 flex-shrink-0">
                             <canvas id="electionPieChart"></canvas>
                         </div>
-                        <div id="pie-legend" class="space-y-3"></div>
+                        <div id="pie-legend" class="space-y-3 w-full sm:w-auto"></div>
                     </div>
                 </div>
             </div>
@@ -198,7 +199,7 @@
                                 <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Voted</p>
                             </div>
                             <div class="text-center">
-                                <p id="percent-not-voted" class="text-xl font-black text-[#515167]">0%</p>
+                                <p id="percent-not-voted" class="text-xl font-black text-[#D33131]">0%</p>
                                 <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Not Voted</p>
                             </div>
                         </div>
@@ -210,7 +211,7 @@
                             <canvas id="modalBarChart"></canvas>
                         </div>
                         <div class="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
-                            <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Students</span>
+                            <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Students:</span>
                             <span id="modal-total-students" class="text-lg font-black text-gray-800">0</span>
                         </div>
                     </div>

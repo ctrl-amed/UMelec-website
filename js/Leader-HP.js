@@ -98,28 +98,24 @@ function renderVotedBars(votedData, totalVoted, message = "") {
         return;
     }
 
-    const colorPalette = {
-        "1st Year": "#0098E0",
-        "2nd Year": "#0098E0",
-        "3rd Year": "#0098E0",
-        "4th Year": "#0098E0"
+    const shortLabels = {
+        "1st Year": "1st",
+        "2nd Year": "2nd",
+        "3rd Year": "3rd",
+        "4th Year": "4th"
     };
 
-    chartContainer.innerHTML = Object.entries(votedData).map(([label, count]) => {
+    chartContainer.innerHTML = `<div class="ui-bar-graph">` + Object.entries(votedData).map(([label, count]) => {
         const percentage = totalVoted > 0 ? (count / totalVoted) * 100 : 0;
         return `
-            <div class="space-y-1 mb-4">
-                <div class="flex justify-between text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                    <span>${label}</span>
-                    <span class="text-gray-400 font-medium">${count} Voted</span>
+            <div class="ui-bar-row">
+                <span class="ui-bar-label">${shortLabels[label] || label}</span>
+                <div class="ui-bar-track">
+                    <div class="ui-bar-fill" style="width: ${percentage}%"></div>
                 </div>
-                <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden border border-gray-50">
-                    <div class="h-full transition-all duration-1000"
-                         style="width: ${percentage}%; background-color: ${colorPalette[label]}">
-                    </div>
-                </div>
+                <span class="ui-bar-value">${count.toLocaleString()}</span>
             </div>`;
-    }).join('');
+    }).join('') + `</div>`;
 }
 
 function initProfile() {

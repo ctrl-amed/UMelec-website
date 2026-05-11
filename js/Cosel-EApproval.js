@@ -20,6 +20,32 @@ document.addEventListener('DOMContentLoaded', () => {
     let isInitialLoad = true;
     let modalPie = null; 
     let modalBar = null;
+    const BAR_GREEN = '#27A688';
+    const PIE_POSITIVE = '#27A688';
+    const PIE_NEGATIVE = '#D33131';
+
+    const barValuePlugin = {
+        id: 'approvalBarValuePlugin',
+        afterDatasetsDraw(chart) {
+            const { ctx, data, chartArea } = chart;
+            const dataset = data.datasets[0];
+            if (!dataset) return;
+
+            ctx.save();
+            ctx.font = '700 12px Poppins, Arial, sans-serif';
+            ctx.fillStyle = '#1f2937';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+
+            chart.getDatasetMeta(0).data.forEach((bar, index) => {
+                const value = dataset.data[index] || 0;
+                const x = Math.min(bar.x + 8, chartArea.right - 22);
+                ctx.fillText(value.toLocaleString(), x, bar.y);
+            });
+
+            ctx.restore();
+        }
+    };
 
     // --- 1. Loading UI ---
     const showInitialLoading = () => {
@@ -257,6 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
                         <h4 class="text-[10px] font-black uppercase text-gray-400 mb-4 text-center">Demographics</h4>
                         <div class="h-40"><canvas id="modalBarChart"></canvas></div>
+                        <p class="ui-bar-total">Total Students: ${(turnout.years || [0,0,0,0]).reduce((sum, count) => sum + count, 0).toLocaleString()}</p>
                     </div>
                 </div>
 
@@ -293,10 +320,10 @@ document.addEventListener('DOMContentLoaded', () => {
         modalPie = new Chart(ctxPie, {
             type: 'doughnut',
             data: {
-                labels: ['Voted', 'Absence'],
+                labels: ['Voted', 'Not Voted'],
                 datasets: [{
                     data: [turnout.voted, turnout.notVoted],
-                    backgroundColor: ['#2563eb', '#f1f5f9'],
+                    backgroundColor: [PIE_POSITIVE, PIE_NEGATIVE],
                     borderWidth: 0,
                     cutout: '80%'
                 }]
@@ -311,11 +338,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 labels: ['1st', '2nd', '3rd', '4th'],
                 datasets: [{
                     data: turnout.years || [0,0,0,0],
-                    backgroundColor: '#3b82f6',
-                    borderRadius: 5
+                    backgroundColor: BAR_GREEN,
+                    borderRadius: 5,
+                    barThickness: 15
                 }]
             },
-            options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            options: {
+                indexAxis: 'y',
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                scales: {
+                    x: {
+                        display: false,
+                        max: Math.max(...(turnout.years || [0,0,0,0]), 1) * 1.25
+                    },
+                    y: {
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: {
+                            color: '#6b7280',
+                            font: { family: 'Poppins', size: 12, weight: '700' }
+                        }
+                    }
+                }
+            },
+            plugins: [barValuePlugin]
         });
     }
 

@@ -132,10 +132,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const allVotesDocs = voteSnap.docs.map(d => ({ id: d.id, ...d.data() }));
             
             const yearData = [
-                { label: "1st Year", count: 0, color: "bg-blue-500" },
-                { label: "2nd Year", count: 0, color: "bg-orange-500" },
-                { label: "3rd Year", count: 0, color: "bg-emerald-500" },
-                { label: "4th Year", count: 0, color: "bg-red-500" }
+                { label: "1st", count: 0 },
+                { label: "2nd", count: 0 },
+                { label: "3rd", count: 0 },
+                { label: "4th", count: 0 }
             ];
 
             let totalStudents = 0;
@@ -182,32 +182,33 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="relative w-32 h-32 mb-4">
                                 <svg viewBox="0 0 36 36" class="w-full h-full transform -rotate-90">
                                     <circle cx="18" cy="18" r="16" fill="none" class="stroke-gray-100" stroke-width="4"></circle>
-                                    <circle cx="18" cy="18" r="16" fill="none" class="stroke-emerald-400" stroke-width="4" stroke-dasharray="${turnoutPerc}, 100"></circle>
+                                    <circle cx="18" cy="18" r="16" fill="none" stroke="#27A688" stroke-width="4" stroke-dasharray="${turnoutPerc}, 100"></circle>
                                 </svg>
                                 <div class="absolute inset-0 flex items-center justify-center font-bold text-xl turnout-number">${turnoutPerc}%</div>
                             </div>
                             <div class="w-full space-y-2">
                                 <div class="flex justify-between p-3 bg-gray-50 rounded-xl text-xs font-bold">
-                                    <span class="text-gray-500">Voted</span><span class="text-emerald-500">${turnoutPerc}%</span>
+                                    <span class="text-gray-500">Voted</span><span class="text-[#27A688]">${turnoutPerc}%</span>
                                 </div>
                                 <div class="flex justify-between p-3 bg-gray-50 rounded-xl text-xs font-bold text-gray-500">
-                                    <span>Not Voted</span><span>${100 - turnoutPerc}%</span>
+                                    <span>Not Voted</span><span class="text-[#D33131]">${100 - turnoutPerc}%</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="space-y-4">
+                        <div>
                             <h5 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Year Level Participation</h5>
-                            ${yearData.map(item => `
-                                <div class="space-y-1 year-row">
-                                    <div class="flex justify-between text-xs font-bold text-gray-600">
-                                        <span class="year-label">${item.label}</span><span class="year-count">${item.count} Students</span>
+                            <div class="ui-bar-graph mt-4">
+                                ${yearData.map(item => `
+                                    <div class="ui-bar-row year-row">
+                                        <span class="ui-bar-label year-label">${item.label}</span>
+                                        <div class="ui-bar-track">
+                                            <div class="ui-bar-fill year-bar" style="width: ${totalStudents > 0 ? (item.count/totalStudents)*100 : 0}%"></div>
+                                        </div>
+                                        <span class="ui-bar-value year-count">${item.count}</span>
                                     </div>
-                                    <div class="w-full bg-gray-100 rounded-full h-2">
-                                        <div class="${item.color} h-2 rounded-full year-bar" style="width: ${totalStudents > 0 ? (item.count/totalStudents)*100 : 0}%"></div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                            <p class="text-center text-[10px] font-bold text-gray-400 mt-2">Total Population: ${totalStudents}</p>
+                                `).join('')}
+                            </div>
+                            <p class="ui-bar-total">Total Students: ${totalStudents}</p>
                         </div>
                     </div>
 
@@ -372,15 +373,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="position: relative; width: 120px; height: 120px; margin-right: 40px;">
                     <svg viewBox="0 0 36 36" style="transform: rotate(-90deg); width: 120px; height: 120px;">
                         <circle cx="18" cy="18" r="16" fill="none" stroke="#e5e7eb" stroke-width="3"></circle>
-                        <circle cx="18" cy="18" r="16" fill="none" stroke="#10b981" stroke-width="3" stroke-dasharray="${turnoutPerc}, 100"></circle>
+                        <circle cx="18" cy="18" r="16" fill="none" stroke="#27A688" stroke-width="3" stroke-dasharray="${turnoutPerc}, 100"></circle>
                     </svg>
                     <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 22px; font-weight: bold;">${turnoutPerc}%</div>
                 </div>
                 <div style="flex: 1;">
-                    <h3 style="margin: 0; color: #10b981; font-size: 22px; font-weight: bold;">Verified Participation</h3>
+                    <h3 style="margin: 0; color: #27A688; font-size: 22px; font-weight: bold;">Verified Participation</h3>
                     <div style="display: flex; gap: 40px; margin-top: 10px;">
-                        <div><span style="font-size: 11px; color: #6b7280; display: block; text-transform: uppercase; font-weight: bold;">Voted Students</span><span style="font-size: 18px; color: #10b981; font-weight: bold;">${turnoutPerc}%</span></div>
-                        <div><span style="font-size: 11px; color: #6b7280; display: block; text-transform: uppercase; font-weight: bold;">Not Voted</span><span style="font-size: 18px; color: #9ca3af; font-weight: bold;">${notVotedPerc}%</span></div>
+                        <div><span style="font-size: 11px; color: #6b7280; display: block; text-transform: uppercase; font-weight: bold;">Voted Students</span><span style="font-size: 18px; color: #27A688; font-weight: bold;">${turnoutPerc}%</span></div>
+                        <div><span style="font-size: 11px; color: #6b7280; display: block; text-transform: uppercase; font-weight: bold;">Not Voted</span><span style="font-size: 18px; color: #D33131; font-weight: bold;">${notVotedPerc}%</span></div>
                         <div><span style="font-size: 11px; color: #6b7280; display: block; text-transform: uppercase; font-weight: bold;">Total Ballots</span><span style="font-size: 18px; color: #1f2937; font-weight: bold;">${totalVotersFromRows}</span></div>
                     </div>
                 </div>
@@ -391,7 +392,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const label = row.querySelector('.year-label').innerText;
                     const countVal = parseInt(row.querySelector('.year-count').innerText.replace(/[^0-9]/g, '') || 0);
                     const voterShare = totalVotersFromRows > 0 ? ((countVal / totalVotersFromRows) * 100).toFixed(1) : "0.0";
-                    const barColor = window.getComputedStyle(row.querySelector('.year-bar')).backgroundColor;
                     return `
                         <div style="margin-bottom: 20px;">
                             <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 8px; font-size: 14px;">
@@ -399,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span style="color: #111827;">${countVal} Voters</span>
                             </div>
                             <div style="background: #f3f4f6; height: 10px; border-radius: 10px; width: 100%;">
-                                <div style="width: ${voterShare}%; background: ${barColor}; height: 10px; border-radius: 10px;"></div>
+                                <div style="width: ${voterShare}%; background: #27A688; height: 10px; border-radius: 10px;"></div>
                             </div>
                         </div>`;
                 }).join('')}

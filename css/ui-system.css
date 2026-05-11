@@ -1,0 +1,314 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Poppins:wght@400;700&display=swap');
+
+:root {
+    --ui-positive: #27A688;
+    --ui-negative: #D33131;
+    --ui-neutral: #515167;
+    --ui-body: #1f2937;
+    --ui-muted: #6b7280;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+body,
+.font-sans {
+    font-family: 'Poppins', Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--ui-body);
+}
+
+main h1,
+.modal-overlay h1,
+#detailsModal h1,
+#viewModal h1,
+#analyticsModal h1,
+#exportModal h1,
+#logoutModal h1,
+.ui-h1 {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 32px !important;
+    font-weight: 700 !important;
+}
+
+main h2,
+.modal-overlay h2,
+#detailsModal h2,
+#viewModal h2,
+#analyticsModal h2,
+#exportModal h2,
+#logoutModal h2,
+.ui-h2 {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 24px !important;
+    font-weight: 600 !important;
+}
+
+main h3,
+.modal-overlay h3,
+#detailsModal h3,
+#viewModal h3,
+#analyticsModal h3,
+#exportModal h3,
+#logoutModal h3,
+.ui-h3 {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 20px !important;
+    font-weight: 600 !important;
+}
+
+.subtitle {
+    font-family: 'Poppins', Arial, sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+}
+
+.caption,
+caption,
+small {
+    font-family: 'Poppins', Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+button,
+input[type="button"],
+input[type="submit"] {
+    font-family: 'Poppins', Arial, sans-serif;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+}
+
+a {
+    font-family: 'Poppins', Arial, sans-serif;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+}
+
+.ui-bar-graph {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.ui-bar-row {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) max-content;
+    align-items: center;
+    gap: 12px;
+}
+
+.ui-bar-label,
+.ui-bar-value,
+.ui-bar-total {
+    color: var(--ui-muted);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.ui-bar-value {
+    color: var(--ui-body);
+    text-align: right;
+    white-space: nowrap;
+}
+
+.ui-bar-track {
+    width: 100%;
+    height: 12px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #eef2f7;
+}
+
+.ui-bar-fill {
+    height: 100%;
+    min-width: 0;
+    border-radius: inherit;
+    background: var(--ui-positive);
+    transition: width 700ms ease;
+}
+
+.ui-bar-total {
+    margin-top: 4px;
+    padding-top: 14px;
+    border-top: 1px solid #f1f5f9;
+    text-align: center;
+    color: var(--ui-body);
+}
+
+img,
+canvas,
+svg,
+video,
+iframe,
+object {
+    max-width: 100%;
+}
+
+canvas {
+    display: block;
+}
+
+main {
+    min-width: 0;
+}
+
+main table {
+    width: 100%;
+}
+
+input,
+select,
+textarea {
+    max-width: 100%;
+    font-family: 'Poppins', Arial, sans-serif;
+}
+
+@media (max-width: 1023px) {
+    aside nav {
+        flex-direction: row !important;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 8px;
+        scrollbar-width: thin;
+    }
+
+    aside nav a,
+    aside nav button {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 767px) {
+    .h-screen {
+        height: auto !important;
+        min-height: 100vh;
+    }
+
+    .h-2\/5,
+    .h-3\/5 {
+        height: auto !important;
+        min-height: 0;
+    }
+
+    .h-2\/5 {
+        padding-top: 40px !important;
+        padding-bottom: 40px !important;
+    }
+
+    body.h-screen,
+    body.overflow-hidden {
+        height: auto !important;
+        min-height: 100vh;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+    }
+
+    body {
+        overflow-x: hidden;
+    }
+
+    main {
+        padding: 16px !important;
+    }
+
+    main h1,
+    .modal-overlay h1,
+    #detailsModal h1,
+    #viewModal h1,
+    #analyticsModal h1,
+    #exportModal h1,
+    #logoutModal h1,
+    .ui-h1 {
+        font-size: 28px !important;
+        line-height: 1.2;
+    }
+
+    main h2,
+    .modal-overlay h2,
+    #detailsModal h2,
+    #viewModal h2,
+    #analyticsModal h2,
+    #exportModal h2,
+    #logoutModal h2,
+    .ui-h2 {
+        font-size: 22px !important;
+        line-height: 1.25;
+    }
+
+    main h3,
+    .modal-overlay h3,
+    #detailsModal h3,
+    #viewModal h3,
+    #analyticsModal h3,
+    #exportModal h3,
+    #logoutModal h3,
+    .ui-h3 {
+        font-size: 18px !important;
+        line-height: 1.3;
+    }
+
+    table {
+        display: block;
+        min-width: 640px;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    table thead,
+    table tbody,
+    table tr {
+        width: 100%;
+    }
+
+    .fixed.inset-0 {
+        align-items: flex-start !important;
+        overflow-y: auto !important;
+    }
+
+    .fixed.inset-0 > div {
+        max-width: calc(100vw - 24px) !important;
+        max-height: calc(100vh - 24px) !important;
+        margin-top: 12px !important;
+        margin-bottom: 12px !important;
+        border-radius: 24px !important;
+    }
+
+    .review-modal-content {
+        height: auto !important;
+        min-height: 0;
+    }
+
+    iframe,
+    object {
+        min-height: 320px;
+    }
+
+    .flex.gap-4,
+    .flex.gap-3 {
+        min-width: 0;
+    }
+
+    .grid {
+        min-width: 0;
+    }
+
+    .ui-bar-row {
+        grid-template-columns: 42px minmax(0, 1fr) max-content;
+        gap: 10px;
+    }
+
+    .ui-bar-label,
+    .ui-bar-value,
+    .ui-bar-total {
+        font-size: 11px;
+    }
+}
