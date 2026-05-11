@@ -25,6 +25,10 @@ const db = getFirestore(app);
 const functions = getFunctions(app, "us-central1");
 const storage = getStorage(app); // Added this line
 
+// ADD THIS: Hidden instance for creating users without logout
+const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+export const secondaryAuth = getAuth(secondaryApp);
+
 // 3. Export everything at once
 export { auth, db, functions, storage }; // Added storage to the export
 
