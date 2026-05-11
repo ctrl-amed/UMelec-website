@@ -125,7 +125,7 @@ form.addEventListener('submit', async (e) => {
     const user = auth.currentUser;
     if (!user) {
         alert("Session expired. Please login again.");
-        window.location.href = "Leader-Login.html";
+        window.location.href = "index.html";
         return;
     }
 

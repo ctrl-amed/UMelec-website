@@ -100,11 +100,12 @@ loginForm.addEventListener('submit', function (e) {
 
                 // 6. ROUTING LOGIC
                 if (userRole === "COSEL") {
-                    // Integrated COSEL Message
+                    const isPasswordUpdated = userData.isPasswordUpdated === true;
+
                     showSuccess(
-                        "Temporary access granted.", 
-                        "Security requires password change.", 
-                        "Cosel-PasswordUpdate.html"
+                        isPasswordUpdated ? "Login Success" : "Temporary access granted.",
+                        isPasswordUpdated ? "Welcome back, COSEL." : "Security requires password change.",
+                        isPasswordUpdated ? "Cosel-Homepage.html" : "Cosel-PasswordUpdate.html"
                     );
                 } else if (userRole === "LEADER") {
                     // Integrated Leader Message
